@@ -3,6 +3,7 @@
 cd ./sdk
 composer install --no-dev
 cd ..
+rm -rf ./lightninghub.zip
 mkdir ./lightninghub
 cp -r ./classes ./lightninghub/
 cp -r ./controllers ./lightninghub/

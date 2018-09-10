@@ -332,9 +332,17 @@ class LightningHub extends PaymentModule
 
         $orderObj = LightningHubSql::loadByOrderId($order->id);
         $payReq = $orderObj->payment_request;
+        $expiryAt = $orderObj->creation_time + $orderObj->expiry;
 
         $walletBtn = self::WALLET_PREFIX . $payReq;
 
+        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
+        $now = new \DateTime();
+        if ($expiryAt <= $now->getTimestamp()) {
+            $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
+            $order->save();
+            $canceled = true;
+        }
         if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')) {
             $this->smarty->assign('status', 'ok');
         }
@@ -349,8 +357,9 @@ class LightningHub extends PaymentModule
                 'BTC' => $BTC,
                 'payReq' => $payReq,
                 'walletBtn' => $walletBtn,
-                'expiry_at' => $orderObj->creation_time + $orderObj->expiry,
+                'expiry_at' => $expiryAt,
                 'settled' => $orderObj->settled,
+                'canceled' => $canceled,
                 'order_status' => $order->getCurrentOrderState()->name[1],
             )
         );

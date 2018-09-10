@@ -20,7 +20,7 @@
     <span class="reference">
         <strong>{{$order_status|escape:'html':'UTF-8'}}</strong>
     </span>
-    {if (!$settled)}
+    {if (!$settled && !$canceled)}
         <br/>
         <span>- {{l s='Invoice expire at' mod='LightningHub'}}:</span>
         <span class="reference">
