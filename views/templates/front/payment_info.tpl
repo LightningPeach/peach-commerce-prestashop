@@ -1,0 +1,1 @@
+<p>{l s='You must pay the lightning invoice after complete order.' mod='LightningHub'}</p>
