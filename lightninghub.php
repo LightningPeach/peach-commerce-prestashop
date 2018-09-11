@@ -64,16 +64,30 @@ class LightningHub extends PaymentModule
         $this->api = new Hub\LightningClient($this->hubHost, $this->merchantId);
     }
 
+    /**
+     * Hub host
+     * @return string|null
+     */
     public function getHubHost()
     {
         return $this->hubHost;
     }
 
+    /**
+     * Merchant id
+     * @return string|null
+     */
     public function getMerchantId()
     {
         return $this->merchantId;
     }
 
+    /**
+     * Is called in module install process
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function install()
     {
         if (extension_loaded('curl') == false) {
@@ -85,11 +99,26 @@ class LightningHub extends PaymentModule
         return parent::install() &&
             LightningHubSql::install() &&
             $this->installOrderStatus() &&
+            /** @see LightningHub::hookDisplayOrderDetail */
+            $this->registerHook('displayOrderDetail') &&
+            /** @see LightningHub::hookHeader */
             $this->registerHook('header') &&
+            /** @see LightningHub::hookBackOfficeHeader */
+            $this->registerHook('backOfficeHeader') &&
+            /** @see LightningHub::hookPaymentReturn */
             $this->registerHook('paymentReturn') &&
-            $this->registerHook('paymentOptions');
+            /** @see LightningHub::hookPaymentOptions */
+            $this->registerHook('paymentOptions') &&
+               /** @see LightningHub::hookDisplayAdminOrderContentOrder */
+            $this->registerHook('displayAdminOrderContentOrder');
     }
 
+    /**
+     * Add custom pending order status
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function installOrderStatus()
     {
         if (!Configuration::get(self::OS_WAITING)
@@ -116,6 +145,10 @@ class LightningHub extends PaymentModule
         return true;
     }
 
+    /**
+     * Is called in uninstall module process
+     * @return bool
+     */
     public function uninstall()
     {
         return Configuration::deleteByName(self::HOST) &&
@@ -124,7 +157,9 @@ class LightningHub extends PaymentModule
     }
 
     /**
-     * Load the configuration form
+     * Load the data for module configuration page
+     * @return string
+     * @throws PrestaShopException
      */
     public function getContent()
     {
@@ -167,16 +202,15 @@ class LightningHub extends PaymentModule
         return $html;
     }
 
-    protected function getConfigFormValues()
-    {
-        return array(
-            self::HOST => Configuration::get(self::HOST, null),
-            self::MERCHANT_ID => Configuration::get(self::MERCHANT_ID, null),
-        );
-    }
-
+    /**
+     * Render config form in module configuration page
+     * @see LightningHub::getContent
+     * @return string
+     * @throws PrestaShopException
+     */
     protected function renderForm()
     {
+        /** @var HelperFormCore $helper */
         $helper = new HelperForm();
 
         $helper->show_toolbar = false;
@@ -207,6 +241,24 @@ class LightningHub extends PaymentModule
         return $helper->generateForm(array($this->getConfigForm()));
     }
 
+    /**
+     * Return values for config form
+     * @see LightningHub::renderForm
+     * @return array
+     */
+    protected function getConfigFormValues()
+    {
+        return array(
+            self::HOST => Configuration::get(self::HOST, null),
+            self::MERCHANT_ID => Configuration::get(self::MERCHANT_ID, null),
+        );
+    }
+
+    /**
+     * Return form structure for module config page
+     * @see LightningHub::renderForm
+     * @return array
+     */
     protected function getConfigForm()
     {
         return array(
@@ -239,6 +291,9 @@ class LightningHub extends PaymentModule
         );
     }
 
+    /**
+     * Handle post action for module config form
+     */
     protected function postProcess()
     {
         $host = Tools::getValue(self::HOST);
@@ -248,26 +303,29 @@ class LightningHub extends PaymentModule
             $this->postErrors[] = $this->l('Hub host is required.');
         } elseif (!filter_var($host, FILTER_VALIDATE_URL)) {
             $this->postErrors[] = $this->l('Hub host is not url.');
-        } else {
-            Configuration::updateValue(self::HOST, $host);
         }
         if (!$merchantId) {
             $this->postErrors[] = $this->l('Merchant id is required.');
-        } else {
-            Configuration::updateValue(self::MERCHANT_ID, $merchantId);
+        }
+        if (count($this->postErrors)) {
+            return;
+        }
+        $testApi = new Hub\LightningClient($host, $merchantId);
+        try {
+            $testReq = $testApi->getBalance();
+            if (isset($testReq->balance)) {
+                Configuration::updateValue(self::HOST, $host);
+                Configuration::updateValue(self::MERCHANT_ID, $merchantId);
+            }
+        } catch (Hub\LightningException $e) {
+            $this->postErrors[] = $this->l('Hub host is invalid');
         }
     }
 
     /**
-     * Add the CSS & JavaScript files you want to be added on the shop frontend (user view).
+     * @param Cart $cart
+     * @return bool
      */
-    public function hookHeader()
-    {
-        $this->context->controller->addJS($this->_path . '/views/js/front.js');
-        $this->context->controller->addJS($this->_path . '/views/js/libs/jquery-qrcode/jquery.qrcode.min.js');
-        $this->context->controller->addCSS($this->_path . '/views/css/front.css');
-    }
-
     public function checkCurrency($cart)
     {
         $currency_order = new Currency($cart->id_currency);
@@ -284,43 +342,99 @@ class LightningHub extends PaymentModule
         return false;
     }
 
-    public function hookPaymentOptions($params)
+    public function addOrderInfo($orderId, $invoice)
     {
-        if (!$this->active) {
+        $order = new LightningHubSql();
+        $order->order_id = $orderId;
+        $order->payment_request = $invoice->payment_request;
+        $order->r_hash = $invoice->r_hash;
+        $order->settled = false;
+        $order->creation_time = $invoice->creation_time;
+        $order->expiry = $invoice->expiry;
+        $order->timestamp = $invoice->timestamp;
+        $order->signature = $invoice->signature;
+        $order->save();
+    }
+
+    public function convertToBTCFromSatoshi($value)
+    {
+        $BTC = $value / 100000000;
+        return $BTC;
+    }
+
+    public function formatBTC($value)
+    {
+        $value = sprintf('%.8f', $value);
+        $value = rtrim($value, '0') . ' BTC';
+        return $value;
+    }
+
+    /** HOOKS SECTION */
+
+    /**
+     * This hook is used to display info in order detail (history) page
+     * @param array $params
+     * @return null|string
+     * @throws PrestaShopException
+     */
+    public function hookDisplayOrderDetail($params)
+    {
+        /** @var Order $order */
+        $order = $params['order'];
+        $orderInfo = LightningHubSql::loadByOrderId($order->id);
+        if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
             return null;
         }
+        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
 
-        if (!$this->checkCurrency($params['cart'])) {
-            return null;
+        $now = new \DateTime();
+        $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
+        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
+            $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
+            $order->save();
+            header('Location: '.$_SERVER['REQUEST_URI']);
+            die();
         }
 
-        $newOption = new PaymentOption();
-        $newOption
-            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/option_logo.png'))
-            ->setCallToActionText($this->l('Pay by Lightning'))
-            ->setModuleName($this->name)
-            ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
-            ->setAdditionalInformation(
-                $this->fetch('module:LightningHub/views/templates/front/payment_info.tpl')
-            );
-        $payment_options = [
-            $newOption,
-        ];
+        $this->context->smarty->assign('payReq', $orderInfo->payment_request);
+        $this->context->smarty->assign('expiry_at', $expiryAt);
+        $html = $this->display(__FILE__, 'frontend_order_info.tpl');
+        return $html;
+    }
 
-        return $payment_options;
+    /**
+     * Add custom css/js for front office (userview) header
+     */
+    public function hookHeader()
+    {
+        $this->context->controller->addJS($this->_path . '/views/js/front.js');
+        $this->context->controller->addJS($this->_path . '/views/js/libs/jquery-qrcode/jquery.qrcode.min.js');
+        $this->context->controller->addCSS($this->_path . '/views/css/front.css');
+    }
+
+    /**
+     * Add custom css/js for back office (admin) header
+     */
+    public function hookBackOfficeHeader()
+    {
+        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
     }
 
     /**
      * This hook is used to display the order confirmation page.
+     * @param array $params
+     * @return mixed|null
+     * @throws PrestaShopException
      */
     public function hookPaymentReturn($params)
     {
         if (!$this->active) {
             return null;
         }
-
+        /** @var Order $order */
         $order = $params['order'];
         $currency = new Currency($params['order']->id_currency);
+
         $totalPaid = $order->getOrdersTotalPaid();
 
         try {
@@ -338,7 +452,7 @@ class LightningHub extends PaymentModule
 
         $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
         $now = new \DateTime();
-        if ($expiryAt <= $now->getTimestamp()) {
+        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             $canceled = true;
@@ -367,30 +481,62 @@ class LightningHub extends PaymentModule
         return $this->fetch('module:LightningHub/views/templates/hook/order_complete.tpl');
     }
 
-    public function addOrderInfo($orderId, $invoice)
+    /**
+     * This hook is used to display module payment options in checkout page
+     * @param array $params
+     * @return array|null
+     */
+    public function hookPaymentOptions($params)
     {
-        $order = new LightningHubSql();
-        $order->order_id = $orderId;
-        $order->payment_request = $invoice->payment_request;
-        $order->r_hash = $invoice->r_hash;
-        $order->settled = false;
-        $order->creation_time = $invoice->creation_time;
-        $order->expiry = $invoice->expiry;
-        $order->timestamp = $invoice->timestamp;
-        $order->signature = $invoice->signature;
-        $order->save();
+        if (!$this->active) {
+            return null;
+        }
+
+        if (!$this->checkCurrency($params['cart'])) {
+            return null;
+        }
+
+        if (!$this->merchantId || !$this->hubHost) {
+            return null;
+        }
+
+        $newOption = new PaymentOption();
+        $newOption
+            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/option_logo.png'))
+            ->setCallToActionText($this->l('Pay by Lightning'))
+            ->setModuleName($this->name)
+            ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
+            ->setAdditionalInformation(
+                $this->fetch('module:LightningHub/views/templates/front/payment_info.tpl')
+            );
+        $payment_options = [
+            $newOption,
+        ];
+
+        return $payment_options;
     }
 
-    public function convertToBTCFromSatoshi($value)
+    public function hookDisplayAdminOrderContentOrder($params)
     {
-        $BTC = $value / 100000000;
-        return $BTC;
-    }
+        /** @var Order $order */
+        $order = $params['order'];
+        $orderInfo = LightningHubSql::loadByOrderId($order->id);
+        if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
+            return null;
+        }
+        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
 
-    public function formatBTC($value)
-    {
-        $value = sprintf('%.8f', $value);
-        $value = rtrim($value, '0') . ' BTC';
-        return $value;
+        $now = new \DateTime();
+        $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
+        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
+            $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
+            $order->save();
+            header('Location: '.$_SERVER['REQUEST_URI']);
+            die();
+        }
+
+        $this->context->smarty->assign('payReq', $orderInfo->payment_request);
+        $html = $this->display(__FILE__, 'backend_order_info.tpl');
+        return $html;
     }
 }
