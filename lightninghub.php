@@ -385,11 +385,11 @@ class LightningHub extends PaymentModule
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
             return null;
         }
-        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
+        $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
 
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
-        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
+        if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             header('Location: '.$_SERVER['REQUEST_URI']);
@@ -450,9 +450,10 @@ class LightningHub extends PaymentModule
 
         $walletBtn = self::WALLET_PREFIX . $payReq;
 
-        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
+        $canceled = false;
+        $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
         $now = new \DateTime();
-        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
+        if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             $canceled = true;
@@ -524,11 +525,11 @@ class LightningHub extends PaymentModule
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
             return null;
         }
-        $canceled = $order->getCurrentOrderState()->id === (int)Configuration::get('PS_OS_CANCELED');
+        $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
 
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
-        if ($expiryAt <= $now->getTimestamp() && !$canceled) {
+        if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             header('Location: '.$_SERVER['REQUEST_URI']);
