@@ -17,7 +17,10 @@ class LightningHub extends PaymentModule
     const OS_WAITING = 'LIGHTNINGHUB_OS_WAITING';
     const WALLET_PREFIX = 'lightning:';
 
+    const FORM_NOTIFICATION_URL = 'FORM_NOTIFICATION_URL';
+
     private $postErrors = [];
+    private $tabName = "AdminLightningHub";
     private $config_form = false;
     private $hubHost;
     private $merchantId;
@@ -66,6 +69,7 @@ class LightningHub extends PaymentModule
 
     /**
      * Hub host
+     *
      * @return string|null
      */
     public function getHubHost()
@@ -75,6 +79,7 @@ class LightningHub extends PaymentModule
 
     /**
      * Merchant id
+     *
      * @return string|null
      */
     public function getMerchantId()
@@ -84,6 +89,7 @@ class LightningHub extends PaymentModule
 
     /**
      * Is called in module install process
+     *
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
@@ -98,6 +104,7 @@ class LightningHub extends PaymentModule
 
         return parent::install() &&
             LightningHubSql::install() &&
+            $this->installTab() &&
             $this->installOrderStatus() &&
             /** @see LightningHub::hookDisplayOrderDetail */
             $this->registerHook('displayOrderDetail') &&
@@ -109,12 +116,28 @@ class LightningHub extends PaymentModule
             $this->registerHook('paymentReturn') &&
             /** @see LightningHub::hookPaymentOptions */
             $this->registerHook('paymentOptions') &&
-               /** @see LightningHub::hookDisplayAdminOrderContentOrder */
+            /** @see LightningHub::hookDisplayAdminOrderContentOrder */
             $this->registerHook('displayAdminOrderContentOrder');
+    }
+
+    public function installTab()
+    {
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = $this->tabName;
+        $tab->name = array();
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = 'Lightning Hub';
+        }
+        $tab->id_parent = (int)Tab::getIdFromClassName('AdminParentPayment');
+
+        $tab->module = $this->name;
+        return $tab->add();
     }
 
     /**
      * Add custom pending order status
+     *
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
@@ -147,17 +170,27 @@ class LightningHub extends PaymentModule
 
     /**
      * Is called in uninstall module process
+     *
      * @return bool
      */
     public function uninstall()
     {
         return Configuration::deleteByName(self::HOST) &&
             Configuration::deleteByName(self::MERCHANT_ID) &&
+            $this->uninstallTab() &&
             parent::uninstall();
+    }
+
+    public function uninstallTab()
+    {
+        $id_tab = (int)Tab::getIdFromClassName($this->tabName);
+        $tab = new Tab((int)$id_tab);
+        return $tab->delete();
     }
 
     /**
      * Load the data for module configuration page
+     *
      * @return string
      * @throws PrestaShopException
      */
@@ -174,28 +207,6 @@ class LightningHub extends PaymentModule
             }
         }
 
-        try {
-            $balanceReq = $this->api->getBalance();
-        } catch (Hub\LightningException $error) {
-            $balanceReq = null;
-        }
-        if (!$balanceReq) {
-            $balance = 0;
-        } else {
-            $balance = $balanceReq->balance;
-        }
-
-        $this->context->smarty->assign('balance', $this->formatBTC($this->convertToBTCFromSatoshi($balance)));
-        $this->context->smarty->assign(
-            'notificationUrl',
-            $this->context->link->getModuleLink($this->name, 'notification', array(), true)
-        );
-        $this->context->smarty->assign(
-            'rPreImage',
-            $this->context->link->getModuleLink($this->name, 'rpreimage', array(), true)
-        );
-        $html .= $this->display(__FILE__, 'config_info.tpl');
-
         $this->context->smarty->assign('module_dir', $this->_path);
         $html .= $this->renderForm();
 
@@ -204,6 +215,7 @@ class LightningHub extends PaymentModule
 
     /**
      * Render config form in module configuration page
+     *
      * @see LightningHub::getContent
      * @return string
      * @throws PrestaShopException
@@ -243,6 +255,7 @@ class LightningHub extends PaymentModule
 
     /**
      * Return values for config form
+     *
      * @see LightningHub::renderForm
      * @return array
      */
@@ -251,11 +264,18 @@ class LightningHub extends PaymentModule
         return array(
             self::HOST => Configuration::get(self::HOST, null),
             self::MERCHANT_ID => Configuration::get(self::MERCHANT_ID, null),
+            self::FORM_NOTIFICATION_URL => $this->context->link->getModuleLink(
+                $this->name,
+                'notification',
+                array(),
+                true
+            ),
         );
     }
 
     /**
      * Return form structure for module config page
+     *
      * @see LightningHub::renderForm
      * @return array
      */
@@ -269,7 +289,7 @@ class LightningHub extends PaymentModule
                 ),
                 'input' => array(
                     array(
-                        'col' => 3,
+                        'col' => 5,
                         'type' => 'text',
                         'desc' => $this->l('Enter a hub host'),
                         'name' => self::HOST,
@@ -277,11 +297,18 @@ class LightningHub extends PaymentModule
                         'required' => true,
                     ),
                     array(
-                        'col' => 3,
+                        'col' => 5,
                         'type' => 'text',
                         'name' => self::MERCHANT_ID,
                         'label' => $this->l('Merchant id'),
                         'required' => true,
+                    ),
+                    array(
+                        'col' => 5,
+                        'type' => 'text',
+                        'name' => self::FORM_NOTIFICATION_URL,
+                        'label' => $this->l('Url for "notification-url" callback'),
+                        'readonly' => true,
                     ),
                 ),
                 'submit' => array(
@@ -324,6 +351,7 @@ class LightningHub extends PaymentModule
 
     /**
      * @param Cart $cart
+     *
      * @return bool
      */
     public function checkCurrency($cart)
@@ -359,13 +387,15 @@ class LightningHub extends PaymentModule
     public function convertToBTCFromSatoshi($value)
     {
         $BTC = $value / 100000000;
+
         return $BTC;
     }
 
     public function formatBTC($value)
     {
         $value = sprintf('%.8f', $value);
-        $value = rtrim($value, '0') . ' BTC';
+        $value = rtrim(rtrim($value, '0'), '.') . ' BTC';
+
         return $value;
     }
 
@@ -373,7 +403,9 @@ class LightningHub extends PaymentModule
 
     /**
      * This hook is used to display info in order detail (history) page
+     *
      * @param array $params
+     *
      * @return null|string
      * @throws PrestaShopException
      */
@@ -392,13 +424,14 @@ class LightningHub extends PaymentModule
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
-            header('Location: '.$_SERVER['REQUEST_URI']);
+            header('Location: ' . $_SERVER['REQUEST_URI']);
             die();
         }
 
         $this->context->smarty->assign('payReq', $orderInfo->payment_request);
         $this->context->smarty->assign('expiry_at', $expiryAt);
         $html = $this->display(__FILE__, 'frontend_order_info.tpl');
+
         return $html;
     }
 
@@ -422,7 +455,9 @@ class LightningHub extends PaymentModule
 
     /**
      * This hook is used to display the order confirmation page.
+     *
      * @param array $params
+     *
      * @return mixed|null
      * @throws PrestaShopException
      */
@@ -484,7 +519,9 @@ class LightningHub extends PaymentModule
 
     /**
      * This hook is used to display module payment options in checkout page
+     *
      * @param array $params
+     *
      * @return array|null
      */
     public function hookPaymentOptions($params)
@@ -532,12 +569,13 @@ class LightningHub extends PaymentModule
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
-            header('Location: '.$_SERVER['REQUEST_URI']);
+            header('Location: ' . $_SERVER['REQUEST_URI']);
             die();
         }
 
         $this->context->smarty->assign('payReq', $orderInfo->payment_request);
         $html = $this->display(__FILE__, 'backend_order_info.tpl');
+
         return $html;
     }
 }
