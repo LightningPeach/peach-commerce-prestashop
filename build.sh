@@ -13,7 +13,7 @@ cp -r ./upgrade ./lightninghub/
 cp -r ./views ./lightninghub/
 cp ./config.xml ./lightninghub/
 cp ./index.php ./lightninghub/
-cp ./lightninghub.php ./lightninghub/
+cp ./LightningHub.php ./lightninghub/
 cp ./logo.png ./lightninghub/
 
 
