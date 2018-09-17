@@ -4,8 +4,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-include_once(_PS_MODULE_DIR_ . 'lightninghub/sdk/LightningClient.php');
-include_once(_PS_MODULE_DIR_ . 'lightninghub/classes/LightningHubSql.php');
+include_once(_PS_MODULE_DIR_ . 'LightningHub/sdk/LightningClient.php');
+include_once(_PS_MODULE_DIR_ . 'LightningHub/classes/LightningHubSql.php');
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use LightningHub\Hub;
