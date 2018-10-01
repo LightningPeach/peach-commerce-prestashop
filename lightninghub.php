@@ -343,6 +343,8 @@ class LightningHub extends PaymentModule
             if (isset($testReq->balance)) {
                 Configuration::updateValue(self::HOST, $host);
                 Configuration::updateValue(self::MERCHANT_ID, $merchantId);
+            } else {
+                $this->postErrors[] = $this->l('Hub host is unavailable.');
             }
         } catch (Hub\LightningException $e) {
             $this->postErrors[] = $this->l('Hub host is invalid');
