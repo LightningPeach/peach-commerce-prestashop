@@ -47,7 +47,7 @@ class AdminLightningHubController extends ModuleAdminController
                 $this->module->convertToBTCFromSatoshi($balance)
             )
         ));
-        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'LightningHub/views/templates/back/balance.tpl');
+        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'lightninghub/views/templates/back/balance.tpl');
         $this->context->smarty->assign(array(
             'content' => $html,
         ));

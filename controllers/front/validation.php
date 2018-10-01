@@ -21,7 +21,7 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
 
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'LightningHub') {
+            if ($module['name'] == 'lightninghub') {
                 $authorized = true;
                 break;
             }

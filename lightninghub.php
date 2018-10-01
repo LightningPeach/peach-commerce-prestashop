@@ -4,8 +4,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-include_once(_PS_MODULE_DIR_ . 'LightningHub/sdk/LightningClient.php');
-include_once(_PS_MODULE_DIR_ . 'LightningHub/classes/LightningHubSql.php');
+include_once(_PS_MODULE_DIR_ . 'lightninghub/sdk/LightningClient.php');
+include_once(_PS_MODULE_DIR_ . 'lightninghub/classes/LightningHubSql.php');
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use LightningHub\Hub;
@@ -29,12 +29,12 @@ class LightningHub extends PaymentModule
 
     public function __construct()
     {
-        $this->name = 'LightningHub';
+        $this->name = 'lightninghub';
         $this->tab = 'payments_gateways';
         $this->version = '0.0.1';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->author = 'LightningPeach';
-        $this->need_instance = 0;
+        $this->need_instance = 1;
         $this->is_eu_compatible = 1;
         $this->bootstrap = true;
 
@@ -514,7 +514,7 @@ class LightningHub extends PaymentModule
             )
         );
 
-        return $this->fetch('module:LightningHub/views/templates/hook/order_complete.tpl');
+        return $this->fetch('module:lightninghub/views/templates/hook/order_complete.tpl');
     }
 
     /**
@@ -545,7 +545,7 @@ class LightningHub extends PaymentModule
             ->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation(
-                $this->fetch('module:LightningHub/views/templates/front/payment_info.tpl')
+                $this->fetch('module:lightninghub/views/templates/front/payment_info.tpl')
             );
         $payment_options = [
             $newOption,

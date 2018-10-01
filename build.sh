@@ -3,19 +3,19 @@
 cd ./sdk
 composer install --no-dev
 cd ..
-rm -rf ./LightningHub.zip
-mkdir ./LightningHub
-cp -r ./classes ./LightningHub/
-cp -r ./controllers ./LightningHub/
-cp -r ./sdk ./LightningHub/
-cp -r ./translations ./LightningHub/
-cp -r ./upgrade ./LightningHub/
-cp -r ./views ./LightningHub/
-cp ./config.xml ./LightningHub/
-cp ./index.php ./LightningHub/
-cp ./LightningHub.php ./LightningHub/
-cp ./logo.png ./LightningHub/
+rm -rf ./lightninghub.zip
+mkdir ./lightninghub
+cp -r ./classes ./lightninghub/
+cp -r ./controllers ./lightninghub/
+cp -r ./sdk ./lightninghub/
+cp -r ./translations ./lightninghub/
+cp -r ./upgrade ./lightninghub/
+cp -r ./views ./lightninghub/
+cp ./config.xml ./lightninghub/
+cp ./index.php ./lightninghub/
+cp ./lightninghub.php ./lightninghub/
+cp ./logo.png ./lightninghub/
 
 
-zip -r LightningHub.zip LightningHub
-rm -rf ./LightningHub/
+zip -r lightninghub.zip lightninghub
+rm -rf ./lightninghub/

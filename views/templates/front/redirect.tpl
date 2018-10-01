@@ -24,22 +24,22 @@
 *}
 
 <div>
-	<h3>{l s='Redirect your customer' mod='LightningHub'}:</h3>
+	<h3>{l s='Redirect your customer' mod='lightninghub'}:</h3>
 	<ul class="alert alert-info">
-			<li>{l s='This action should be used to redirect your customer to the website of your payment processor' mod='LightningHub'}.</li>
+			<li>{l s='This action should be used to redirect your customer to the website of your payment processor' mod='lightninghub'}.</li>
 	</ul>
 	
 	<div class="alert alert-warning">
-		{l s='You can redirect your customer with an error message' mod='LightningHub'}:
-		<a href="{$link->getModuleLink('LightningHub', 'redirect', ['action' => 'error'], true)|escape:'htmlall':'UTF-8'}" title="{l s='Look at the error' mod='LightningHub'}">
-			<strong>{l s='Look at the error message' mod='LightningHub'}</strong>
+		{l s='You can redirect your customer with an error message' mod='lightninghub'}:
+		<a href="{$link->getModuleLink('lightninghub', 'redirect', ['action' => 'error'], true)|escape:'htmlall':'UTF-8'}" title="{l s='Look at the error' mod='lightninghub'}">
+			<strong>{l s='Look at the error message' mod='lightninghub'}</strong>
 		</a>
 	</div>
 	
 	<div class="alert alert-success">
-		{l s='You can also redirect your customer to the confirmation page' mod='LightningHub'}:
-		<a href="{$link->getModuleLink('LightningHub', 'confirmation', ['cart_id' => $cart_id, 'secure_key' => $secure_key], true)|escape:'htmlall':'UTF-8'}" title="{l s='Confirm' mod='LightningHub'}">
-			<strong>{l s='Go to the confirmation page' mod='LightningHub'}</strong>
+		{l s='You can also redirect your customer to the confirmation page' mod='lightninghub'}:
+		<a href="{$link->getModuleLink('lightninghub', 'confirmation', ['cart_id' => $cart_id, 'secure_key' => $secure_key], true)|escape:'htmlall':'UTF-8'}" title="{l s='Confirm' mod='lightninghub'}">
+			<strong>{l s='Go to the confirmation page' mod='lightninghub'}</strong>
 		</a>
 	</div>
 </div>
