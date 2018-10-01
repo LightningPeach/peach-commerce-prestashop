@@ -8,10 +8,19 @@ class AdminLightningHubController extends ModuleAdminController
     public function __construct()
     {
         $this->bootstrap = true;
-        $this->display = 'view';
+        $this->display   = 'view';
         parent::__construct();
         if (!$this->module->active) {
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminHome'));
+        } elseif (!$this->module->getHubHost() || !$this->module->getMerchantId()) {
+            Tools::redirectAdmin(
+                $this->context->link->getAdminLink(
+                    'AdminModules',
+                    true,
+                    array(),
+                    array('configure' => $this->module->name)
+                )
+            );
         }
     }
 
@@ -45,9 +54,9 @@ class AdminLightningHubController extends ModuleAdminController
         $this->context->smarty->assign(array(
             'balance' => $this->module->formatBTC(
                 $this->module->convertToBTCFromSatoshi($balance)
-            )
+            ),
         ));
-        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'lightninghub/views/templates/back/balance.tpl');
+        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_.'lightninghub/views/templates/back/balance.tpl');
         $this->context->smarty->assign(array(
             'content' => $html,
         ));
@@ -73,9 +82,9 @@ class AdminLightningHubController extends ModuleAdminController
             }
             die(json_encode(
                 array(
-                    'ok' => true,
+                    'ok'      => true,
                     'tx_hash' => $withdraw->tx,
-                    'balance' => $this->module->formatBTC($this->module->convertToBTCFromSatoshi($balance))
+                    'balance' => $this->module->formatBTC($this->module->convertToBTCFromSatoshi($balance)),
                 )
             ));
         } catch (\Exception $e) {
