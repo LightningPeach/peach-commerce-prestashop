@@ -83,7 +83,7 @@ class AdminLightningHubController extends ModuleAdminController
             die(json_encode(
                 array(
                     'ok'      => true,
-                    'tx_hash' => $withdraw->tx,
+                    'tx_hash' => $withdraw->data->tx,
                     'balance' => $this->module->formatBTC($this->module->convertToBTCFromSatoshi($balance)),
                 )
             ));

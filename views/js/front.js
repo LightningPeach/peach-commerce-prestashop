@@ -26,6 +26,23 @@
  * to avoid any conflicts with others containers.
  */
 
+function copyToClipboard(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    const selected = document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     var $qrCode = $('#lightninghub__qrcode');
     var $expiry = $('#lightning_expiry');
@@ -37,4 +54,12 @@ document.addEventListener("DOMContentLoaded", function () {
         var date = new Date(parseInt($expiry.data('expiry'), 10) * 1000);
         $expiry.attr('datetime', date.toISOString()).text(date.toLocaleString());
     }
+    $(document).on("click", '.lightninghub-order__copyToClipboard', (e) => {
+        var copyText = $(e.target).data().copy;
+        if (!copyText) {
+            return;
+        }
+        copyToClipboard(copyText);
+        alert("Copied");
+    })
 });
