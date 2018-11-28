@@ -12,6 +12,7 @@ use LightningHub\Hub;
 
 class LightningHub extends PaymentModule
 {
+    const NAME = 'lightninghub';
     const HOST = 'LIGHTNINGHUB_HOST';
     const MERCHANT_ID = 'LIGHTNINGHUB_MERCHANT_ID';
     const OS_WAITING = 'LIGHTNINGHUB_OS_WAITING';
@@ -29,7 +30,7 @@ class LightningHub extends PaymentModule
 
     public function __construct()
     {
-        $this->name = 'lightninghub';
+        $this->name = self::NAME;
         $this->tab = 'payments_gateways';
         $this->version = '0.0.1';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -207,7 +208,13 @@ class LightningHub extends PaymentModule
             }
         }
 
+        $moduleLink = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
         $this->context->smarty->assign('module_dir', $this->_path);
+        $this->context->smarty->assign(
+            'cron_link',
+            $moduleLink . 'cron.php' . '?token=' . substr(Tools::hash('lightningHub/cron'), 0, 10)
+        );
+        $html .= $this->display(__FILE__, 'backend_settings.tpl');
         $html .= $this->renderForm();
 
         return $html;
@@ -487,13 +494,12 @@ class LightningHub extends PaymentModule
 
         $walletBtn = self::WALLET_PREFIX . $payReq;
 
-        $canceled = false;
         $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
         $now = new \DateTime();
-        if ($expiryAt <= $now->getTimestamp() && $waiting) {
+        $canceled = $expiryAt <= $now->getTimestamp();
+        if ($canceled && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
-            $canceled = true;
         }
         if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')) {
             $this->smarty->assign('status', 'ok');
@@ -513,6 +519,7 @@ class LightningHub extends PaymentModule
                 'settled' => $orderObj->settled,
                 'canceled' => $canceled,
                 'order_status' => $order->getCurrentOrderState()->name[1],
+                'status_link' => $this->context->link->getModuleLink($this->name, 'orderstatus', array(), true),
             )
         );
 

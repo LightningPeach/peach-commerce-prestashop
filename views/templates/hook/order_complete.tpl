@@ -74,10 +74,32 @@
         <a class="btn btn-primary lightninghub-order__btn" href="{{$walletBtn|escape:'htmlall':'UTF-8'}}">
             Pay with Wallet
         </a>
-        <span class="lightninghub-order__mail-notif">
-                {{l s='An email has been sent with this information.' mod='lightninghub'}}
-            </span>
     </div>
+    <script>
+        function checkStatus(){
+            $.ajax({
+                type: "GET",
+                url: "{{$status_link}}",
+                cache: false,
+                dataType: 'json',
+                data: {
+                    order_id: "{{$id_order}}",
+                    token: "{{$static_token}}",
+                },
+                success: function (data) {
+                    if (data.reload) {
+                        location.reload();
+                    }
+                }
+            })
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            checkStatus();
+            setInterval(function(){
+                checkStatus();
+            }, 30000);
+        })
+    </script>
     {/if}
 {else}
 <h3 class="lightninghub__title">

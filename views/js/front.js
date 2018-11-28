@@ -54,12 +54,16 @@ document.addEventListener("DOMContentLoaded", function () {
         var date = new Date(parseInt($expiry.data('expiry'), 10) * 1000);
         $expiry.attr('datetime', date.toISOString()).text(date.toLocaleString());
     }
-    $(document).on("click", '.lightninghub-order__copyToClipboard', (e) => {
-        var copyText = $(e.target).data().copy;
+    $(document).on("click", '.lightninghub-order__copyToClipboard:not(".lightninghub-order__copyToClipboard--success")', (e) => {
+        var $this = $(e.target);
+        var copyText = $this.data().copy;
         if (!copyText) {
             return;
         }
         copyToClipboard(copyText);
-        alert("Copied");
+        $this.addClass("lightninghub-order__copyToClipboard--success");
+        setTimeout(function () {
+            $this.removeClass("lightninghub-order__copyToClipboard--success");
+        }, 3000);
     })
 });

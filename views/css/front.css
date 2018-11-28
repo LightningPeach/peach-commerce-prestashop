@@ -60,25 +60,45 @@
     cursor: pointer;
 }
 
-.lightninghub-order__copyToClipboard:before {
+.lightninghub-order__copyToClipboard:before,
+.lightninghub-order__copyToClipboard:after {
     content: '';
+    background: #000;
+    position: absolute;
+    transition: all .2s ease-in-out;
+}
+
+.lightninghub-order__copyToClipboard:before {
     width: 22px;
     height: 22px;
-    background: #000;
     border-top: 2px solid #fff;
     border-right: 2px solid #fff;
-    position: absolute;
     z-index: 1;
+    transform-origin: center;
 }
 
 .lightninghub-order__copyToClipboard:after {
-    content: '';
     width: 20px;
     height: 20px;
-    background: #000;
-    position: absolute;
     top: -5px;
     right: -5px;
+    transition: all .1s ease-in-out;
+}
+
+.lightninghub-order__copyToClipboard--success{
+    cursor: default;
+}
+
+.lightninghub-order__copyToClipboard--success:before {
+    transform-origin: center;
+    background: transparent;
+    border-color: #000;
+    height: 14px;
+    transform: rotateZ(135deg);
+}
+
+.lightninghub-order__copyToClipboard--success:after {
+    background: transparent;
 }
 
 @media (max-width: 768px) {

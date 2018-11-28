@@ -52,11 +52,14 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
         $orderId = (int)$this->module->currentOrder;
-
+        $orderReference = $this->module->currentOrderReference;
         $invoice = $this->module->api->invoice([
             'currency' => $currency->iso_code,
             'amount' => $total,
-            'memo' => json_encode(['order_id' => $orderId]),
+            'memo' => json_encode([
+                'order_id' => $orderId,
+                'name' => Configuration::get('PS_SHOP_NAME') . ', Reference: ' . $orderReference
+            ]),
         ]);
         $this->module->addOrderInfo($orderId, $invoice);
 
