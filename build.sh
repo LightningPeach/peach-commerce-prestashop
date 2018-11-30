@@ -15,6 +15,7 @@ cp ./config.xml ./lightninghub/
 cp ./index.php ./lightninghub/
 cp ./lightninghub.php ./lightninghub/
 cp ./logo.png ./lightninghub/
+cp ./cron.php ./lightninghub/
 
 
 zip -r lightninghub.zip lightninghub
