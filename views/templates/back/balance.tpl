@@ -17,7 +17,7 @@
             Balance
         </div>
         <div class="col-lg-10">
-            <span class="lightninghub__balance-value">{{$balance|escape:'htmlall':'UTF-8'}}</span>
+            <span class="lightninghub__balance-value">{$balance|escape:'htmlall':'UTF-8'}</span>
         </div>
     </div>
     <div class="panel-footer">

@@ -8,27 +8,30 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
+        /** @var LightningHub $hub */
+        $hub = $this->module;
+        /** @var LightningHub\Hub\LightningClient $moduleApi */
+        $hubApi = $hub->api;
         $cart = $this->context->cart;
 
-        if (
-            empty($cart->id_customer) ||
+        if (empty($cart->id_customer) ||
             empty($cart->id_address_delivery) ||
             empty($cart->id_address_invoice) ||
-            !$this->module->active
+            !$hub->active
         ) {
             Tools::redirect('index.php?controller=order&step=1');
         }
 
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'lightninghub') {
+            if ($module['name'] == $hub::NAME) {
                 $authorized = true;
                 break;
             }
         }
 
         if (!$authorized) {
-            die($this->trans('Lightning payment method is not available.', array(), 'Modules.Checkpayment.Shop'));
+            die($this->trans('Lightning payment method is not available.'));
         }
 
         $customer = new Customer($cart->id_customer);
@@ -37,44 +40,66 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
             Tools::redirect('index.php?controller=order&step=1');
         }
 
-        $currency = $this->context->currency;
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+        try {
+            $currency = $this->context->currency;
+            $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
-        $this->module->validateOrder(
-            (int)$cart->id,
-            Configuration::get('LIGHTNINGHUB_OS_WAITING'),
-            $total,
-            $this->module->displayName,
-            null,
-            array(),
-            (int)$currency->id,
-            false,
-            $customer->secure_key
-        );
-        $orderId = (int)$this->module->currentOrder;
-        $orderReference = $this->module->currentOrderReference;
-        $invoice = $this->module->api->invoice([
-            'currency' => $currency->iso_code,
-            'amount' => $total,
-            'memo' => json_encode([
-                'order_id' => $orderId,
-                'name' => Configuration::get('PS_SHOP_NAME') . ', Reference: ' . $orderReference
-            ]),
-        ]);
-        $this->module->addOrderInfo($orderId, $invoice);
+            $paySatoshi = $hubApi->satoshiToBtc((float)$hubApi->getCurrency($currency->iso_code, $total));
 
-        $queryData = array(
-            'controller' => 'order-confirmation',
-            'id_cart' => (int)$cart->id,
-            'id_module' => (int)$this->module->id,
-            'id_order' => $this->module->currentOrder,
-            'key' => $customer->secure_key,
-        );
-        Tools::redirect('index.php?' . http_build_query($queryData));
-    }
+            if ($paySatoshi > $hub->maxPayment()) {
+                $orderAmountInBtc = $hub->satoshiToBtc($paySatoshi);
+                $maxAmountInBtc = $hub->satoshiToBtc($hub->maxPayment());
 
-    protected function isValidOrder()
-    {
-        return true;
+                $this->errors[] = $this->trans('Order can\'t be completed.');
+                $this->errors[] = $this->trans('Order amount (' . $currency->sign . $total . ' ~ ' . $orderAmountInBtc . ' BTC) exceeds max allowed amount by Lightning payment (' . $maxAmountInBtc . ' BTC)');
+                $this->redirectWithNotifications($_SERVER['HTTP_REFERER']);
+            }
+
+            // CREATING ORDER
+            $hub->validateOrder(
+                (int)$cart->id,
+                Configuration::get('LIGHTNINGHUB_OS_WAITING'),
+                $total,
+                $hub->displayName,
+                null,
+                array(),
+                (int)$currency->id,
+                false,
+                $customer->secure_key
+            );
+
+            $orderId = (int)$hub->currentOrder;
+            $orderReference = $hub->currentOrderReference;
+            $invoice = $hubApi->invoice([
+                'currency' => $currency->iso_code,
+                'amount' => $total,
+                'memo' => json_encode([
+                    'order_id' => $orderId,
+                    'name' => Configuration::get('PS_SHOP_NAME') . ', Reference: ' . $orderReference
+                ]),
+            ]);
+
+            if (!$invoice) {
+                $order = new Order($orderId);
+                $order->delete();
+
+                $this->errors[] = $this->trans('Payment request can\'t be generated.');
+                $this->errors[] = $this->trans('Order amount exceeds max allowed amount by Lightning payment (' . $currency->sign . $total . ')');
+                $this->redirectWithNotifications($_SERVER['HTTP_REFERER']);
+            }
+
+            $hub->addOrderInfo($orderId, $invoice);
+            $queryData = array(
+                'controller' => 'order-confirmation',
+                'id_cart' => (int)$cart->id,
+                'id_module' => (int)$hub->id,
+                'id_order' => $hub->currentOrder,
+                'key' => $customer->secure_key,
+            );
+            Tools::redirect('index.php?' . http_build_query($queryData));
+        } catch (\Exception $ex) {
+            $this->context->smarty->assign('error', $ex->getMessage());
+            $this->setTemplate('module:lightninghub/views/templates/front/errors-messages.tpl');
+        }
     }
 }

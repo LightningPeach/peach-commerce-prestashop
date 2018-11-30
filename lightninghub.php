@@ -17,12 +17,12 @@ class LightningHub extends PaymentModule
     const MERCHANT_ID = 'LIGHTNINGHUB_MERCHANT_ID';
     const OS_WAITING = 'LIGHTNINGHUB_OS_WAITING';
     const WALLET_PREFIX = 'lightning:';
+    const GUIDE_LINK = '';
 
     const FORM_NOTIFICATION_URL = 'FORM_NOTIFICATION_URL';
 
     private $postErrors = [];
     private $tabName = "AdminLightningHub";
-    private $config_form = false;
     private $hubHost;
     private $merchantId;
 
@@ -66,6 +66,17 @@ class LightningHub extends PaymentModule
             $this->warning = $this->l('No currency has been set for this module.');
         }
         $this->api = new Hub\LightningClient($this->hubHost, $this->merchantId);
+    }
+
+    public function maxPayment()
+    {
+        $miliSatoshi = 1e-3;
+        return round(pow(2, 32) * $miliSatoshi);
+    }
+
+    public function satoshiToBtc($value)
+    {
+        return $value * 1e-8;
     }
 
     /**
@@ -209,11 +220,11 @@ class LightningHub extends PaymentModule
         }
 
         $moduleLink = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
-        $this->context->smarty->assign('module_dir', $this->_path);
-        $this->context->smarty->assign(
-            'cron_link',
-            $moduleLink . 'cron.php' . '?token=' . substr(Tools::hash('lightningHub/cron'), 0, 10)
-        );
+        $this->context->smarty->assign(array(
+            'cronLink' =>
+                $moduleLink . 'cron.php' . '?token=' . substr(Tools::hash('lightningHub/cron'), 0, 10),
+            'guideLink' => self::GUIDE_LINK,
+        ));
         $html .= $this->display(__FILE__, 'backend_settings.tpl');
         $html .= $this->renderForm();
 

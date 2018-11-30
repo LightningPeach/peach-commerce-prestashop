@@ -51,11 +51,16 @@ class LightningClient
         return (float)$res->response;
     }
 
+    public function satoshiToBtc($amount)
+    {
+        return (int)($amount * 1e8);
+    }
+
     public function invoice($props)
     {
         $value = (float)$this->getCurrency($props['currency'], $props['amount']);
         $params = [
-            'amount' => (int)($value * 1e8),
+            'amount' => $this->satoshiToBtc($value),
             'description' => $props['memo'],
         ];
         return $this->callApi(

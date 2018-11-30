@@ -11,15 +11,15 @@
                         {{l s='Amount' mod='lightninghub'}}:
                     </span>
                 <span class="lightninghub-order__value">
-                        {{$total|escape:'htmlall':'UTF-8'}} ~ {{$BTC|escape:'htmlall':'UTF-8'}}
+                        {$total|escape:'htmlall':'UTF-8'} ~ {$BTC|escape:'htmlall':'UTF-8'}
                     </span>
             </div>
             <div class="lightninghub-order__row">
                     <span class="lightninghub-order__label">
-                        {{l s='Reference' mod='lightninghub'}}:
+                        {l s='Reference' mod='lightninghub'}:
                     </span>
                 <span class="lightninghub-order__value">
-                        {{$reference|escape:'html':'UTF-8'}}
+                        {$reference|escape:'htmlall':'UTF-8'}
                     </span>
             </div>
             <div class="lightninghub-order__row">
@@ -27,7 +27,7 @@
                         {{l s='Order status' mod='lightninghub'}}:
                     </span>
                 <span class="lightninghub-order__value">
-                        {{$order_status|escape:'html':'UTF-8'}}
+                        {$order_status|escape:'htmlall':'UTF-8'}
                     </span>
             </div>
             {if (!$settled && !$canceled)}
@@ -36,7 +36,7 @@
                         {{l s='Invoice expire at' mod='lightninghub'}}:
                     </span>
                 <span class="lightninghub-order__value">
-                        <time id="lightning_expiry" data-expiry="{{$expiry_at|escape:'html':'UTF-8'}}"></time>
+                        <time id="lightning_expiry" data-expiry="{$expiry_at|escape:'htmlall':'UTF-8'}"></time>
                     </span>
             </div>
             <div class="lightninghub-order__row">
@@ -48,13 +48,13 @@
                 <div class="lightninghub-order__container lightninghub-order__container--payreq">
                     <div class="lightninghub-order__left lightninghub-order__left--payreq">
                     <span class="lightninghub-order__value lightninghub-order__value--pay_req">
-                        {{$payReq|escape:'htmlall':'UTF-8'}}
+                        {$payReq|escape:'htmlall':'UTF-8'}
                     </span>
                     </div>
                     <div class="lightninghub-order__right">
                         <div
                                 class="lightninghub-order__copyToClipboard"
-                                data-copy="{{$payReq|escape:'htmlall':'UTF-8'}}"
+                                data-copy="{$payReq|escape:'htmlall':'UTF-8'}"
                                 title="Copy to clipboard"
                         >
                         </div>
@@ -65,13 +65,13 @@
         </div>
         {if (!$settled && !$canceled)}
         <div class="lightninghub-order__right">
-            <div id="lightninghub__qrcode" data-generate="{{$payReq|escape:'htmlall':'UTF-8'}}"></div>
+            <div id="lightninghub__qrcode" data-generate="{$payReq|escape:'htmlall':'UTF-8'}"></div>
         </div>
         {/if}
     </div>
     {if (!$settled && !$canceled)}
     <div class="lightninghub-order__footer">
-        <a class="btn btn-primary lightninghub-order__btn" href="{{$walletBtn|escape:'htmlall':'UTF-8'}}">
+        <a class="btn btn-primary lightninghub-order__btn" href="{$walletBtn|escape:'htmlall':'UTF-8'}">
             Pay with Wallet
         </a>
     </div>
@@ -79,12 +79,12 @@
         function checkStatus(){
             $.ajax({
                 type: "GET",
-                url: "{{$status_link}}",
+                url: "{$status_link|escape:'html':'UTF-8'}".replace(/&amp;/g,'&'),
                 cache: false,
                 dataType: 'json',
                 data: {
-                    order_id: "{{$id_order}}",
-                    token: "{{$static_token}}",
+                    order_id: "{$id_order|escape:'htmlall':'UTF-8'}",
+                    token: "{$static_token|escape:'htmlall':'UTF-8'}",
                 },
                 success: function (data) {
                     if (data.reload) {
@@ -113,13 +113,13 @@
             {{l s='Reference' mod='lightninghub'}}:
         </span>
         <span class="lightninghub-order__value">
-            {{$reference|escape:'html':'UTF-8'}}
+            {$reference|escape:'htmlall':'UTF-8'}
         </span>
     </div>
 </div>
 <br/>{{l s='Please, try to order again.' mod='lightninghub'}}
 <br/>{{l s='If you have questions, comments or concerns, please contact our' mod='lightninghub'}}
-<a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">
+<a href="{$link->getPageLink('contact', true)|escape:'htmlall':'UTF-8'}">
     {{l s='expert customer support team.' mod='lightninghub'}}
 </a>
 {/if}
