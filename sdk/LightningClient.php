@@ -79,17 +79,17 @@ class LightningClient
 
     public function fetchAll()
     {
-        return $this->callApi('get', "payments")->data;
+        return $this->callApi('get', 'payments')->data;
     }
 
     public function getBalance()
     {
-        return $this->callApi('get', "balance")->data;
+        return $this->callApi('get', 'balance')->data;
     }
 
     public function withdraw()
     {
-        return $this->callApi('post', "withdraw");
+        return $this->callApi('post', 'withdraw');
     }
 
     private function callApi($method, $url, $params = [], $headers = [])

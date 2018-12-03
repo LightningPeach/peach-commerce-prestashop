@@ -14,7 +14,7 @@ class LightningHubOrderStatusModuleFrontController extends ModuleFrontController
         if (!$this->isTokenValid()) {
             die(1);
         }
-        $orderId = (int)Tools::getValue("order_id");
+        $orderId = (int)Tools::getValue('order_id');
         $order = new Order($orderId);
         $orderCustomerId = (int)$order->id_customer;
         $customerId = (int)$this->context->customer->id;

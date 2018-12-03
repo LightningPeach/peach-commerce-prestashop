@@ -15,17 +15,17 @@ class LightningHubRPreImageModuleFrontController extends ModuleFrontController
         $logger->logDebug('--------------------');
         $logger->logDebug(file_get_contents('php://input'));
         $logger->logDebug(Tools::getAllValues());
-        $amount = Tools::getValue("amount");
-        $description = Tools::getValue("description");
-        $creation_date = Tools::getValue("creation_date");
-        $expiry = Tools::getValue("expiry");
-        $settle_date = Tools::getValue("settle_date");
-        $settled = Tools::getValue("settled");
-        $payment_request = Tools::getValue("payment_request");
-        $r_hash = Tools::getValue("r_hash");
-        $withdraw_tx = Tools::getValue("withdraw_tx");
-        $fee = Tools::getValue("fee");
-        $amount_without_fee = Tools::getValue("amount_without_fee");
+        $amount = Tools::getValue('amount');
+        $description = Tools::getValue('description');
+        $creation_date = Tools::getValue('creation_date');
+        $expiry = Tools::getValue('expiry');
+        $settle_date = Tools::getValue('settle_date');
+        $settled = Tools::getValue('settled');
+        $payment_request = Tools::getValue('payment_request');
+        $r_hash = Tools::getValue('r_hash');
+        $withdraw_tx = Tools::getValue('withdraw_tx');
+        $fee = Tools::getValue('fee');
+        $amount_without_fee = Tools::getValue('amount_without_fee');
 
         $logger->logDebug($amount);
         $logger->logDebug($description);

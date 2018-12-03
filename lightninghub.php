@@ -22,7 +22,7 @@ class LightningHub extends PaymentModule
     const FORM_NOTIFICATION_URL = 'FORM_NOTIFICATION_URL';
 
     private $postErrors = [];
-    private $tabName = "AdminLightningHub";
+    private $tabName = 'AdminLightningHub';
     private $hubHost;
     private $merchantId;
 

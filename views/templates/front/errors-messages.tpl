@@ -53,12 +53,12 @@
         </div>
     </section>
     <footer id="footer">
-        {block name="footer"}
-        {include file="_partials/footer.tpl"}
+        {block name='footer'}
+        {include file='_partials/footer.tpl'}
         {/block}
     </footer>
     {block name='javascript_bottom'}
-    {include file="_partials/javascript.tpl" javascript=$javascript.bottom}
+    {include file='_partials/javascript.tpl' javascript=$javascript.bottom}
     {/block}
     {hook h='displayBeforeBodyClosingTag'}
 </main>

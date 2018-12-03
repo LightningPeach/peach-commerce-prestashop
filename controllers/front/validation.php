@@ -49,9 +49,21 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
             if ($paySatoshi > $hub->maxPayment()) {
                 $orderAmountInBtc = $hub->satoshiToBtc($paySatoshi);
                 $maxAmountInBtc = $hub->satoshiToBtc($hub->maxPayment());
-
+                $maxAmountInFiat = round($maxAmountInBtc * $total / $orderAmountInBtc, 2);
                 $this->errors[] = $this->trans('Order can\'t be completed.');
-                $this->errors[] = $this->trans('Order amount (' . $currency->sign . $total . ' ~ ' . $orderAmountInBtc . ' BTC) exceeds max allowed amount by Lightning payment (' . $maxAmountInBtc . ' BTC)');
+                $this->errors[] = $this->trans(
+                    'Order amount ('
+                    . $currency->
+                    sign . $total
+                    . ' ~ '
+                    . $orderAmountInBtc
+                    . ' BTC) exceeds max allowed amount by Lightning payment ('
+                    . $maxAmountInBtc
+                    . ' BTC ~ '
+                    . $currency->sign
+                    . $maxAmountInFiat
+                    . ')'
+                );
                 $this->redirectWithNotifications($_SERVER['HTTP_REFERER']);
             }
 
@@ -83,8 +95,7 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
                 $order = new Order($orderId);
                 $order->delete();
 
-                $this->errors[] = $this->trans('Payment request can\'t be generated.');
-                $this->errors[] = $this->trans('Order amount exceeds max allowed amount by Lightning payment (' . $currency->sign . $total . ')');
+                $this->errors[] = $this->trans('Payment request can\'t be generated. Try later.');
                 $this->redirectWithNotifications($_SERVER['HTTP_REFERER']);
             }
 
