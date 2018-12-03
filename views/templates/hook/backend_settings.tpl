@@ -1,7 +1,7 @@
 <div class="panel">
     <div class="row">
         <div class="alert alert-info">
-            For batch update of lightning hub orders you can use this link or add it to cron job
+            {l s='For batch update of lightning hub orders you can use this link or add it to cron job' mod='lightninghub'}
             <br/>
             <strong>{$cronLink|escape:'htmlall':'UTF-8'}</strong>
         </div>

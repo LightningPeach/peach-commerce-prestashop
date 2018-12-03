@@ -72,7 +72,7 @@
     {if (!$settled && !$canceled)}
     <div class="lightninghub-order__footer">
         <a class="btn btn-primary lightninghub-order__btn" href="{$walletBtn|escape:'htmlall':'UTF-8'}">
-            Pay with Wallet
+            {l s='Pay with Wallet' mod='lightninghub'}
         </a>
     </div>
     <script>
