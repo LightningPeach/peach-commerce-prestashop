@@ -11,7 +11,7 @@ class LightningHubNotificationModuleFrontController extends ModuleFrontControlle
 
     public function postProcess()
     {
-        $data = json_decode(file_get_contents('php://input'));
+        $data = json_decode(Tools::file_get_contents('php://input'));
         if (!isset($data->amount) ||
             !isset($data->description) ||
             !isset($data->creation_date) ||
@@ -24,12 +24,12 @@ class LightningHubNotificationModuleFrontController extends ModuleFrontControlle
             !isset($data->fee) ||
             !isset($data->amount_without_fee)
         ) {
-            echo json_encode(['ok' => false]);
+            echo json_encode(array('ok' => false));
             die();
         }
         $orderId = json_decode($data->description);
         if (!isset($orderId->order_id) || $orderId->order_id < 1) {
-            echo json_encode(['ok' => false]);
+            echo json_encode(array('ok' => false));
             die();
         }
         $orderObj = LightningHubSql::loadByOrderId($orderId->order_id);
@@ -44,7 +44,7 @@ class LightningHubNotificationModuleFrontController extends ModuleFrontControlle
         }
 
         header('Content-Type: application/json');
-        echo json_encode(['ok' => true]);
+        echo json_encode(array('ok' => true));
         die();
     }
 }

@@ -22,6 +22,6 @@ class LightningHubOrderStatusModuleFrontController extends ModuleFrontController
             die(1);
         }
         $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(LightningHub::OS_WAITING);
-        $this->ajaxDie(json_encode(['reload' => !$waiting]));
+        $this->ajaxDie(json_encode(array('reload' => !$waiting)));
     }
 }

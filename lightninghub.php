@@ -21,7 +21,7 @@ class LightningHub extends PaymentModule
 
     const FORM_NOTIFICATION_URL = 'FORM_NOTIFICATION_URL';
 
-    private $postErrors = [];
+    private $postErrors = array();
     private $tabName = 'AdminLightningHub';
     private $hubHost;
     private $merchantId;
@@ -30,7 +30,7 @@ class LightningHub extends PaymentModule
 
     public function __construct()
     {
-        $this->name = self::NAME;
+        $this->name = 'lightninghub';
         $this->tab = 'payments_gateways';
         $this->version = '0.0.1';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -222,7 +222,7 @@ class LightningHub extends PaymentModule
         $moduleLink = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
         $this->context->smarty->assign(array(
             'cronLink' =>
-                $moduleLink . 'cron.php' . '?token=' . substr(Tools::hash('lightningHub/cron'), 0, 10),
+                $moduleLink . 'cron.php' . '?token=' . Tools::substr(Tools::hash('lightningHub/cron'), 0, 10),
             'guideLink' => self::GUIDE_LINK,
         ));
         $html .= $this->display(__FILE__, 'backend_settings.tpl');
@@ -444,7 +444,7 @@ class LightningHub extends PaymentModule
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
-            header('Location: ' . $_SERVER['REQUEST_URI']);
+            Tools::redirect($_SERVER['REQUEST_URI']);
             die();
         }
 
@@ -493,7 +493,7 @@ class LightningHub extends PaymentModule
         $totalPaid = $order->getOrdersTotalPaid();
 
         try {
-            $BTC = $this->api->getCurrency(strtolower($currency->iso_code), $totalPaid);
+            $BTC = $this->api->getCurrency(Tools::strtolower($currency->iso_code), $totalPaid);
             $BTC .= '  BTC';
         } catch (Hub\LightningException $e) {
             $BTC = $e->getMessage();
@@ -567,9 +567,7 @@ class LightningHub extends PaymentModule
             ->setAdditionalInformation(
                 $this->fetch('module:lightninghub/views/templates/front/payment_info.tpl')
             );
-        $payment_options = [
-            $newOption,
-        ];
+        $payment_options = array($newOption);
 
         return $payment_options;
     }
@@ -589,7 +587,7 @@ class LightningHub extends PaymentModule
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
-            header('Location: ' . $_SERVER['REQUEST_URI']);
+            Tools::redirect($_SERVER['REQUEST_URI']);
             die();
         }
 

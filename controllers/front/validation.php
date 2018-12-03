@@ -82,14 +82,14 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
 
             $orderId = (int)$hub->currentOrder;
             $orderReference = $hub->currentOrderReference;
-            $invoice = $hubApi->invoice([
+            $invoice = $hubApi->invoice(array(
                 'currency' => $currency->iso_code,
                 'amount' => $total,
-                'memo' => json_encode([
+                'memo' => json_encode(array(
                     'order_id' => $orderId,
                     'name' => Configuration::get('PS_SHOP_NAME') . ', Reference: ' . $orderReference
-                ]),
-            ]);
+                )),
+            ));
 
             if (!$invoice) {
                 $order = new Order($orderId);

@@ -13,7 +13,7 @@ class LightningHubRPreImageModuleFrontController extends ModuleFrontController
         $logger = new FileLogger(0);
         $logger->setFilename(_PS_ROOT_DIR_ . '/rpreimage.log');
         $logger->logDebug('--------------------');
-        $logger->logDebug(file_get_contents('php://input'));
+        $logger->logDebug(Tools::file_get_contents('php://input'));
         $logger->logDebug(Tools::getAllValues());
         $amount = Tools::getValue('amount');
         $description = Tools::getValue('description');
@@ -40,7 +40,7 @@ class LightningHubRPreImageModuleFrontController extends ModuleFrontController
         $logger->logDebug($amount_without_fee);
 
         header('Content-Type: application/json');
-        echo json_encode(['hello' => 'world']);
+        echo json_encode(array('hello' => 'world'));
         die();
     }
 }

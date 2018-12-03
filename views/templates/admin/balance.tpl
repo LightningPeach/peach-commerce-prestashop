@@ -34,7 +34,7 @@
         $(document).on('click', '#lightninghub__balance-submit', function (e) {
             e.preventDefault();
             $.ajax({
-                url: '{{$current|addslashes}}',
+                url: "{$current|escape:'html':'UTF-8'}".replace(/&amp;/g,'&'),
                 method: 'post',
                 dataType: 'json',
                 data: {

@@ -5,7 +5,7 @@ use PrestaShop\PrestaShop\Core\Addon\Module\ModuleManagerBuilder;
 include dirname(__FILE__) . '/../../config/config.inc.php';
 include dirname(__FILE__) . '/lightninghub.php';
 
-$defToken = substr(Tools::hash('lightningHub/cron'), 0, 10);
+$defToken = Tools::substr(Tools::hash('lightningHub/cron'), 0, 10);
 
 $moduleManagerBuilder = ModuleManagerBuilder::getInstance();
 $moduleManager = $moduleManagerBuilder->build();
