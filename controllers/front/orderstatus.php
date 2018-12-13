@@ -1,6 +1,6 @@
 <?php
 
-class LightningHubOrderStatusModuleFrontController extends ModuleFrontController
+class PeachCommerceOrderStatusModuleFrontController extends ModuleFrontController
 {
     public function initContent()
     {
@@ -21,7 +21,7 @@ class LightningHubOrderStatusModuleFrontController extends ModuleFrontController
         if ($orderCustomerId !== $customerId) {
             die(1);
         }
-        $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(LightningHub::OS_WAITING);
+        $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(PeachCommerce::OS_WAITING);
         $this->ajaxDie(json_encode(array('reload' => !$waiting)));
     }
 }

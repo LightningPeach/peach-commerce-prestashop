@@ -1,6 +1,6 @@
 <?php
 
-class LightningHubValidationModuleFrontController extends ModuleFrontController
+class PeachCommerceValidationModuleFrontController extends ModuleFrontController
 {
     /**
      * This class should be use by your Instant Payment
@@ -8,7 +8,7 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
-        /** @var LightningHub $hub */
+        /** @var PeachCommerce $hub */
         $hub = $this->module;
         /** @var LightningHub\Hub\LightningClient $moduleApi */
         $hubApi = $hub->api;
@@ -70,7 +70,7 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
             // CREATING ORDER
             $hub->validateOrder(
                 (int)$cart->id,
-                Configuration::get('LIGHTNINGHUB_OS_WAITING'),
+                Configuration::get('PEACHCOMMERCE_OS_WAITING'),
                 $total,
                 $hub->displayName,
                 null,
@@ -110,7 +110,7 @@ class LightningHubValidationModuleFrontController extends ModuleFrontController
             Tools::redirect('index.php?' . http_build_query($queryData));
         } catch (\Exception $ex) {
             $this->context->smarty->assign('error', $ex->getMessage());
-            $this->setTemplate('module:lightninghub/views/templates/front/errors-messages.tpl');
+            $this->setTemplate('module:peachcommerce/views/templates/front/errors-messages.tpl');
         }
     }
 }

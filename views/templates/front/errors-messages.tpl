@@ -16,7 +16,7 @@
             <section id="main">
                 <section id="content" class="page-content card card-block">
                     {include file='_partials/breadcrumb.tpl'}
-                    <h2>{l s='Error in Lightning Hub' mod='lightninghub'}</h2>
+                    <h2>{l s='Error in Peach Commerce' mod='peachcommerce'}</h2>
                     <div class="table-responsive-row clearfix">
                         <p>
                             {$error}

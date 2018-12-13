@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-    <name>lightninghub</name>
-    <displayName><![CDATA[Lightning Hub]]></displayName>
+    <name>peachcommerce</name>
+    <displayName><![CDATA[Peach Commerce]]></displayName>
     <version><![CDATA[0.0.1]]></version>
-    <description><![CDATA[Accept payments by lightning payment.]]></description>
+    <description><![CDATA[Accept payments by Lightning.]]></description>
     <author><![CDATA[LightningPeach]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
 	<confirmUninstall><![CDATA[Are you sure you want to delete your details?]]></confirmUninstall>

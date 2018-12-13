@@ -1,6 +1,6 @@
 <?php
 
-class LightningHubRPreImageModuleFrontController extends ModuleFrontController
+class PeachCommerceRPreImageModuleFrontController extends ModuleFrontController
 {
     public function initContent()
     {

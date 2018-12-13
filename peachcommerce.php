@@ -4,25 +4,28 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-include_once(_PS_MODULE_DIR_ . 'lightninghub/sdk/LightningClient.php');
-include_once(_PS_MODULE_DIR_ . 'lightninghub/classes/LightningHubSql.php');
+include_once(_PS_MODULE_DIR_ . 'peachcommerce/sdk/LightningClient.php');
+include_once(_PS_MODULE_DIR_ . 'peachcommerce/classes/PeachCommerceSql.php');
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use LightningHub\Hub;
 
-class LightningHub extends PaymentModule
+class PeachCommerce extends PaymentModule
 {
-    const NAME = 'lightninghub';
-    const HOST = 'LIGHTNINGHUB_HOST';
-    const MERCHANT_ID = 'LIGHTNINGHUB_MERCHANT_ID';
-    const OS_WAITING = 'LIGHTNINGHUB_OS_WAITING';
+    const NAME = 'peachcommerce';
+    const HOST = 'PEACHCOMMERCE_HOST';
+    const MERCHANT_ID = 'PEACHCOMMERCE_MERCHANT_ID';
+    const OS_WAITING = 'PEACHCOMMERCE_OS_WAITING';
     const WALLET_PREFIX = 'lightning:';
-    const GUIDE_LINK = '';
+    const GUIDE_LINK = 'https://github.com/LightningPeach/prestashop_plugin/blob/master/README.md';
+    const GITHUB_LINK = 'https://github.com/LightningPeach/prestashop_plugin';
+    const WALLET_LINK = 'https://lightningpeach.com/peach-wallet';
+    const HUB_CHANNEL_LINK = 'https://lightningpeach.com/peach-public-node';
 
     const FORM_NOTIFICATION_URL = 'FORM_NOTIFICATION_URL';
 
     private $postErrors = array();
-    private $tabName = 'AdminLightningHub';
+    private $tabName = 'AdminPeachCommerce';
     private $hubHost;
     private $merchantId;
 
@@ -30,7 +33,8 @@ class LightningHub extends PaymentModule
 
     public function __construct()
     {
-        $this->name = 'lightninghub';
+        $name = PeachCommerce::NAME;
+        $this->name = $name;
         $this->tab = 'payments_gateways';
         $this->version = '0.0.1';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -52,14 +56,14 @@ class LightningHub extends PaymentModule
 
         parent::__construct();
 
-        $this->displayName = $this->l('Lightning Hub');
-        $this->description = $this->l('Accept payments by lightning payment.');
+        $this->displayName = $this->l('Peach Commerce');
+        $this->description = $this->l('Accept payments by Lightning.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to delete your details?');
 
         if (empty($this->hubHost) || empty($this->merchantId)) {
             $this->warning = $this->l(
-                'Lightning hub host and merchant id must be configured before using this module'
+                'Hub host and merchant ID must be configured before using this module'
             );
         }
         if (!count(Currency::checkPaymentCurrencies($this->id))) {
@@ -115,20 +119,20 @@ class LightningHub extends PaymentModule
         }
 
         return parent::install() &&
-            LightningHubSql::install() &&
+            PeachCommerceSql::install() &&
             $this->installTab() &&
             $this->installOrderStatus() &&
-            /** @see LightningHub::hookDisplayOrderDetail */
+            /** @see PeachCommerce::hookDisplayOrderDetail */
             $this->registerHook('displayOrderDetail') &&
-            /** @see LightningHub::hookHeader */
+            /** @see PeachCommerce::hookHeader */
             $this->registerHook('header') &&
-            /** @see LightningHub::hookBackOfficeHeader */
+            /** @see PeachCommerce::hookBackOfficeHeader */
             $this->registerHook('backOfficeHeader') &&
-            /** @see LightningHub::hookPaymentReturn */
+            /** @see PeachCommerce::hookPaymentReturn */
             $this->registerHook('paymentReturn') &&
-            /** @see LightningHub::hookPaymentOptions */
+            /** @see PeachCommerce::hookPaymentOptions */
             $this->registerHook('paymentOptions') &&
-            /** @see LightningHub::hookDisplayAdminOrderContentOrder */
+            /** @see PeachCommerce::hookDisplayAdminOrderContentOrder */
             $this->registerHook('displayAdminOrderContentOrder');
     }
 
@@ -139,7 +143,7 @@ class LightningHub extends PaymentModule
         $tab->class_name = $this->tabName;
         $tab->name = array();
         foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = 'Lightning Hub';
+            $tab->name[$lang['id_lang']] = 'Peach Commerce';
         }
         $tab->id_parent = (int)Tab::getIdFromClassName('AdminParentPayment');
 
@@ -209,7 +213,7 @@ class LightningHub extends PaymentModule
     public function getContent()
     {
         $html = '';
-        if (((bool)Tools::isSubmit('submitLightningHubModule')) == true) {
+        if (((bool)Tools::isSubmit('submitPeachCommerceModule')) == true) {
             $this->postProcess();
             if (count($this->postErrors)) {
                 foreach ($this->postErrors as $err) {
@@ -222,8 +226,9 @@ class LightningHub extends PaymentModule
         $moduleLink = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
         $this->context->smarty->assign(array(
             'cronLink' =>
-                $moduleLink . 'cron.php' . '?token=' . Tools::substr(Tools::hash('lightningHub/cron'), 0, 10),
+                $moduleLink . 'cron.php' . '?token=' . Tools::substr(Tools::hash('peachCommerce/cron'), 0, 10),
             'guideLink' => self::GUIDE_LINK,
+            'githubLink' => self::GITHUB_LINK,
         ));
         $html .= $this->display(__FILE__, 'backend_settings.tpl');
         $html .= $this->renderForm();
@@ -234,7 +239,7 @@ class LightningHub extends PaymentModule
     /**
      * Render config form in module configuration page
      *
-     * @see LightningHub::getContent
+     * @see PeachCommerce::getContent
      * @return string
      * @throws PrestaShopException
      */
@@ -250,7 +255,7 @@ class LightningHub extends PaymentModule
         $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
         $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submitLightningHubModule';
+        $helper->submit_action = 'submitPeachCommerceModule';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) .
             '&' .
             http_build_query(
@@ -274,7 +279,7 @@ class LightningHub extends PaymentModule
     /**
      * Return values for config form
      *
-     * @see LightningHub::renderForm
+     * @see PeachCommerce::renderForm
      * @return array
      */
     protected function getConfigFormValues()
@@ -294,7 +299,7 @@ class LightningHub extends PaymentModule
     /**
      * Return form structure for module config page
      *
-     * @see LightningHub::renderForm
+     * @see PeachCommerce::renderForm
      * @return array
      */
     protected function getConfigForm()
@@ -309,7 +314,7 @@ class LightningHub extends PaymentModule
                     array(
                         'col' => 5,
                         'type' => 'text',
-                        'desc' => $this->l('Enter a hub host'),
+                        'desc' => $this->l('the URL for hub API, is provided by Peach team.'),
                         'name' => self::HOST,
                         'label' => $this->l('Hub host'),
                         'required' => true,
@@ -317,15 +322,17 @@ class LightningHub extends PaymentModule
                     array(
                         'col' => 5,
                         'type' => 'text',
+                        'desc' => $this->l('a secret key to your account on Peach Public Node, is provided by Peach team.'),
                         'name' => self::MERCHANT_ID,
-                        'label' => $this->l('Merchant id'),
+                        'label' => $this->l('Merchant ID'),
                         'required' => true,
                     ),
                     array(
                         'col' => 5,
                         'type' => 'text',
+                        'desc' => $this->l('a URL for webhook to inform you about a new successful payment. Should be provided to Peach team to create an account.'),
                         'name' => self::FORM_NOTIFICATION_URL,
-                        'label' => $this->l('Url for "notification-url" callback'),
+                        'label' => $this->l('Notification URL'),
                         'readonly' => true,
                     ),
                 ),
@@ -392,7 +399,7 @@ class LightningHub extends PaymentModule
 
     public function addOrderInfo($orderId, $invoice)
     {
-        $order = new LightningHubSql();
+        $order = new PeachCommerceSql();
         $order->order_id = $orderId;
         $order->payment_request = $invoice->payment_request;
         $order->r_hash = $invoice->r_hash;
@@ -433,7 +440,7 @@ class LightningHub extends PaymentModule
     {
         /** @var Order $order */
         $order = $params['order'];
-        $orderInfo = LightningHubSql::loadByOrderId($order->id);
+        $orderInfo = PeachCommerceSql::loadByOrderId($order->id);
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
             return null;
         }
@@ -499,7 +506,7 @@ class LightningHub extends PaymentModule
             $BTC = $e->getMessage();
         }
 
-        $orderObj = LightningHubSql::loadByOrderId($order->id);
+        $orderObj = PeachCommerceSql::loadByOrderId($order->id);
         $payReq = $orderObj->payment_request;
         $expiryAt = $orderObj->creation_time + $orderObj->expiry;
 
@@ -534,7 +541,7 @@ class LightningHub extends PaymentModule
             )
         );
 
-        return $this->fetch('module:lightninghub/views/templates/hook/order_complete.tpl');
+        return $this->fetch('module:peachcommerce/views/templates/hook/order_complete.tpl');
     }
 
     /**
@@ -558,6 +565,8 @@ class LightningHub extends PaymentModule
             return null;
         }
 
+        $this->smarty->assign('walletLink', self::WALLET_LINK);
+        $this->smarty->assign('hubChannel', self::HUB_CHANNEL_LINK);
         $newOption = new PaymentOption();
         $newOption
             ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/option_logo.png'))
@@ -565,7 +574,7 @@ class LightningHub extends PaymentModule
             ->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation(
-                $this->fetch('module:lightninghub/views/templates/front/payment_info.tpl')
+                $this->fetch('module:peachcommerce/views/templates/front/payment_info.tpl')
             );
         $payment_options = array($newOption);
 
@@ -576,7 +585,7 @@ class LightningHub extends PaymentModule
     {
         /** @var Order $order */
         $order = $params['order'];
-        $orderInfo = LightningHubSql::loadByOrderId($order->id);
+        $orderInfo = PeachCommerceSql::loadByOrderId($order->id);
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
             return null;
         }

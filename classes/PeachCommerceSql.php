@@ -1,6 +1,6 @@
 <?php
 
-class LightningHubSql extends ObjectModel
+class PeachCommerceSql extends ObjectModel
 {
     public $order_id;
     public $payment_request;
@@ -15,7 +15,7 @@ class LightningHubSql extends ObjectModel
      * @see ObjectModel::$definition
      */
     public static $definition = array(
-        'table' => 'lightning_hub',
+        'table' => 'peach_commerce',
         'primary' => 'id',
         'multilang' => false,
         'fields' => array(
@@ -39,7 +39,7 @@ class LightningHubSql extends ObjectModel
         $sql = array();
 
         $sql[] = '
-          CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'lightning_hub` (
+          CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'peach_commerce` (
             `id` INT(11) NOT NULL AUTO_INCREMENT,
             `order_id` INT(11) NOT NULL REFERENCES ' . _DB_PREFIX_ . 'orders(id),
             `payment_request` VARCHAR(512) NOT NULL,
@@ -78,7 +78,7 @@ class LightningHubSql extends ObjectModel
     {
         $sql = new DbQuery();
         $sql->select('id');
-        $sql->from('lightning_hub');
+        $sql->from('peach_commerce');
         $sql->where('order_id = ' . pSQL((int)$orderId));
         $order = Db::getInstance()->getValue($sql);
         return new self($order);

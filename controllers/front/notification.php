@@ -1,8 +1,8 @@
 <?php
 
-include_once(_PS_MODULE_DIR_ . 'lightninghub/classes/LightningHubSql.php');
+include_once(_PS_MODULE_DIR_ . 'peachcommerce/classes/PeachCommerceSql.php');
 
-class LightningHubNotificationModuleFrontController extends ModuleFrontController
+class PeachCommerceNotificationModuleFrontController extends ModuleFrontController
 {
     public function initContent()
     {
@@ -32,7 +32,7 @@ class LightningHubNotificationModuleFrontController extends ModuleFrontControlle
             echo json_encode(array('ok' => false));
             die();
         }
-        $orderObj = LightningHubSql::loadByOrderId($orderId->order_id);
+        $orderObj = PeachCommerceSql::loadByOrderId($orderId->order_id);
         $invoice = $this->module->api->fetch($orderObj->r_hash);
         if ($invoice->settled) {
             $order = new Order((int)$orderObj->order_id);

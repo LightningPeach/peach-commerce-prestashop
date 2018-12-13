@@ -3,19 +3,19 @@
 cd ./sdk
 composer install --no-dev
 cd ..
-rm -rf ./lightninghub.zip
-mkdir ./lightninghub
-cp -r ./classes ./lightninghub/
-cp -r ./controllers ./lightninghub/
-cp -r ./sdk ./lightninghub/
-cp -r ./translations ./lightninghub/
-cp -r ./views ./lightninghub/
-cp ./config.xml ./lightninghub/
-cp ./index.php ./lightninghub/
-cp ./lightninghub.php ./lightninghub/
-cp ./logo.png ./lightninghub/
-cp ./cron.php ./lightninghub/
+rm -rf ./peach-commerce.zip
+mkdir ./peachcommerce
+cp -r ./classes ./peachcommerce/
+cp -r ./controllers ./peachcommerce/
+cp -r ./sdk ./peachcommerce/
+cp -r ./translations ./peachcommerce/
+cp -r ./views ./peachcommerce/
+cp ./config.xml ./peachcommerce/
+cp ./index.php ./peachcommerce/
+cp ./peachcommerce.php ./peachcommerce/
+cp ./logo.png ./peachcommerce/
+cp ./cron.php ./peachcommerce/
 
 
-zip -r lightninghub.zip lightninghub
-rm -rf ./lightninghub/
+zip -r peach-commerce.zip peachcommerce
+rm -rf ./peachcommerce/

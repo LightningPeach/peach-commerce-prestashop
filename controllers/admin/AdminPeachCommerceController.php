@@ -1,8 +1,8 @@
 <?php
 
-class AdminLightningHubController extends ModuleAdminController
+class AdminPeachCommerceController extends ModuleAdminController
 {
-    /** @var LightningHub $module */
+    /** @var PeachCommerce $module */
     public $module;
 
     public function __construct()
@@ -27,7 +27,7 @@ class AdminLightningHubController extends ModuleAdminController
     public function initToolBarTitle()
     {
         $this->toolbar_title[] = $this->l('Administration');
-        $this->toolbar_title[] = $this->l('Lightning Hub');
+        $this->toolbar_title[] = $this->l('Peach Commerce');
     }
 
     public function initPageHeaderToolbar()
@@ -56,7 +56,7 @@ class AdminLightningHubController extends ModuleAdminController
                 $this->module->convertToBTCFromSatoshi($balance)
             ),
         ));
-        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_.'lightninghub/views/templates/admin/balance.tpl');
+        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_.'peachcommerce/views/templates/admin/balance.tpl');
         $this->context->smarty->assign(array(
             'content' => $html,
         ));
