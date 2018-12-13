@@ -17,8 +17,8 @@ class PeachCommerce extends PaymentModule
     const MERCHANT_ID = 'PEACHCOMMERCE_MERCHANT_ID';
     const OS_WAITING = 'PEACHCOMMERCE_OS_WAITING';
     const WALLET_PREFIX = 'lightning:';
-    const GUIDE_LINK = 'https://github.com/LightningPeach/prestashop_plugin/blob/master/README.md';
-    const GITHUB_LINK = 'https://github.com/LightningPeach/prestashop_plugin';
+    const GUIDE_LINK = 'https://github.com/LightningPeach/peach_commerce_prestashop/blob/master/README.md';
+    const GITHUB_LINK = 'https://github.com/LightningPeach/peach_commerce_prestashop';
     const WALLET_LINK = 'https://lightningpeach.com/peach-wallet';
     const HUB_CHANNEL_LINK = 'https://lightningpeach.com/peach-public-node';
 
