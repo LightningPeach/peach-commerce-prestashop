@@ -2,7 +2,7 @@
 <module>
     <name>peachcommerce</name>
     <displayName><![CDATA[Peach Commerce]]></displayName>
-    <version><![CDATA[0.0.1]]></version>
+    <version><![CDATA[0.1.0]]></version>
     <description><![CDATA[Accept payments by Lightning.]]></description>
     <author><![CDATA[LightningPeach]]></author>
     <tab><![CDATA[payments_gateways]]></tab>

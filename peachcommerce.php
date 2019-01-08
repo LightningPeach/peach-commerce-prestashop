@@ -36,7 +36,7 @@ class PeachCommerce extends PaymentModule
         $name = PeachCommerce::NAME;
         $this->name = $name;
         $this->tab = 'payments_gateways';
-        $this->version = '0.0.1';
+        $this->version = '0.1.0';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->author = 'LightningPeach';
         $this->need_instance = 1;
