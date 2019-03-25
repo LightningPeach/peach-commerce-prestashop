@@ -11,8 +11,16 @@ class AdminPeachCommerceController extends ModuleAdminController
         $this->display   = 'view';
         parent::__construct();
         if (!$this->module->active) {
+            $this->module->logger->logDebug(array(
+                'AdminPeachCommerceController->__construct: Module not active',
+                'Redirect to AdminHome page'
+            ));
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminHome'));
         } elseif (!$this->module->getHubHost() || !$this->module->getMerchantId()) {
+            $this->module->logger->logDebug(array(
+                'AdminPeachCommerceController->__construct: Hub host or merchantId not set',
+                'Redirect to config page'
+            ));
             Tools::redirectAdmin(
                 $this->context->link->getAdminLink(
                     'AdminModules',
@@ -41,6 +49,10 @@ class AdminPeachCommerceController extends ModuleAdminController
         try {
             $balanceReq = $this->module->api->getBalance();
         } catch (\Exception $error) {
+            $this->module->logger->logError(array(
+                'AdminPeachCommerceController->initContent: Api getBalance exception',
+                $error->getMessage()
+            ));
             $balanceReq = null;
         }
         if (!$balanceReq) {
@@ -73,6 +85,10 @@ class AdminPeachCommerceController extends ModuleAdminController
             try {
                 $balanceReq = $this->module->api->getBalance();
             } catch (\Exception $error) {
+                $this->module->logger->logError(array(
+                    'AdminPeachCommerceController->ajaxProcessWithDraw: Api getBalance exception',
+                    $error->getMessage()
+                ));
                 $balanceReq = null;
             }
             if (!$balanceReq) {
@@ -87,8 +103,12 @@ class AdminPeachCommerceController extends ModuleAdminController
                     'balance' => $this->module->formatBTC($this->module->convertToBTCFromSatoshi($balance)),
                 )
             ));
-        } catch (\Exception $e) {
-            die(json_encode(array('ok' => false, 'error' => $e->getMessage())));
+        } catch (\Exception $error) {
+            $this->module->logger->logError(array(
+                'AdminPeachCommerceController->ajaxProcessWithDraw: Exception',
+                $error->getMessage()
+            ));
+            die(json_encode(array('ok' => false, 'error' => $error->getMessage())));
         }
     }
 }

@@ -46,6 +46,8 @@ class PeachCommerce extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
+        $this->logger = $this->setLogger();
+
         $config = Configuration::getMultiple(array(self::HOST, self::MERCHANT_ID));
         if (!empty($config[self::HOST])) {
             $this->hubHost = $config[self::HOST];
@@ -70,6 +72,13 @@ class PeachCommerce extends PaymentModule
             $this->warning = $this->l('No currency has been set for this module.');
         }
         $this->api = new Hub\LightningClient($this->hubHost, $this->merchantId);
+    }
+
+    public function setLogger()
+    {
+        $logger = new FileLogger(0);
+        $logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/' . date('Ymd') . '_peachcommerce.log');
+        return $logger;
     }
 
     public function maxPayment()
@@ -360,6 +369,7 @@ class PeachCommerce extends PaymentModule
             $this->postErrors[] = $this->l('Merchant id is required.');
         }
         if (count($this->postErrors)) {
+            $this->logger->logError(array('PeachCommerce->postProcess', $this->postErrors));
             return;
         }
         $testApi = new Hub\LightningClient($host, $merchantId);
@@ -369,9 +379,11 @@ class PeachCommerce extends PaymentModule
                 Configuration::updateValue(self::HOST, $host);
                 Configuration::updateValue(self::MERCHANT_ID, $merchantId);
             } else {
+                $this->logger->logError(array('PeachCommerce->postProcess: Balance not in api response', $testReq));
                 $this->postErrors[] = $this->l('Hub host is unavailable.');
             }
         } catch (Hub\LightningException $e) {
+            $this->logger->logError(array('PeachCommerce->postProcess: Api getBalance exception', $e->getMessage()));
             $this->postErrors[] = $this->l('Hub host is invalid');
         }
     }
@@ -442,6 +454,7 @@ class PeachCommerce extends PaymentModule
         $order = $params['order'];
         $orderInfo = PeachCommerceSql::loadByOrderId($order->id);
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
+            $this->logger->logError(array('PeachCommerce->hookDisplayOrderDetail: OrderId not found', $order));
             return null;
         }
         $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
@@ -449,6 +462,7 @@ class PeachCommerce extends PaymentModule
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
+            $this->logger->logDebug(array('PeachCommerce->hookDisplayOrderDetail: Order expired', $order));
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             Tools::redirect($_SERVER['REQUEST_URI']);
@@ -503,6 +517,10 @@ class PeachCommerce extends PaymentModule
             $BTC = $this->api->getCurrency(Tools::strtolower($currency->iso_code), $totalPaid);
             $BTC .= '  BTC';
         } catch (Hub\LightningException $e) {
+            $this->logger->logError(array(
+                'PeachCommerce->hookPaymentReturn: Api getCurrency exception',
+                $e->getMessage()
+            ));
             $BTC = $e->getMessage();
         }
 
@@ -594,6 +612,10 @@ class PeachCommerce extends PaymentModule
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
+            $this->logger->logDebug(array(
+                'PeachCommerce->hookDisplayAdminOrderContentOrder: Order expired',
+                $orderInfo
+            ));
             $order->setCurrentState((int)Configuration::get('PS_OS_CANCELED'));
             $order->save();
             Tools::redirect($_SERVER['REQUEST_URI']);

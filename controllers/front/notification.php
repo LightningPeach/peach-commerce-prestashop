@@ -24,17 +24,31 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
             !isset($data->fee) ||
             !isset($data->amount_without_fee)
         ) {
+            $this->module->logger->logError(array(
+                'PeachCommerceNotificationModuleFrontController->postProcess: Some data not provided',
+                'Required [amount, description, creation_date, expiry, settle_date, settled, payment_request, r_hash, withdraw_tx, fee, amount_without_fee]',
+                'Received',
+                $data
+            ));
             echo json_encode(array('ok' => false));
             die();
         }
         $orderId = json_decode($data->description);
         if (!isset($orderId->order_id) || $orderId->order_id < 1) {
+            $this->module->logger->logError(array(
+                'PeachCommerceNotificationModuleFrontController->postProcess: No orderId in description',
+                $data
+            ));
             echo json_encode(array('ok' => false));
             die();
         }
         $orderObj = PeachCommerceSql::loadByOrderId($orderId->order_id);
         $invoice = $this->module->api->fetch($orderObj->r_hash);
         if ($invoice->settled) {
+            $this->module->logger->logDebug(array(
+                'PeachCommerceNotificationModuleFrontController->postProcess: Invoice settled',
+                $invoice
+            ));
             $order = new Order((int)$orderObj->order_id);
             $order->setCurrentState((int)Configuration::get('PS_OS_PAYMENT'));
             $order->save();
