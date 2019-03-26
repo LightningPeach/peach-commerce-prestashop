@@ -55,7 +55,7 @@ class AdminPeachCommerceController extends ModuleAdminController
             );
             $balanceReq = null;
         }
-        if (!$balanceReq) {
+        if (!$balanceReq || !isset($balanceReq->balance)) {
             $balance = 0;
         } else {
             $balance = $balanceReq->balance;
@@ -79,6 +79,10 @@ class AdminPeachCommerceController extends ModuleAdminController
         try {
             $withdraw = $this->module->api->withdraw();
             if (isset($withdraw->err) && $withdraw->err) {
+                $this->module->logError(
+                    'AdminPeachCommerceController->ajaxProcessWithDraw: Api withdraw error',
+                    array('message' => $withdraw->err)
+                );
                 die(json_encode(array('ok' => false, 'error' => $withdraw->err)));
             }
 
@@ -91,7 +95,7 @@ class AdminPeachCommerceController extends ModuleAdminController
                 );
                 $balanceReq = null;
             }
-            if (!$balanceReq) {
+            if (!$balanceReq || !isset($balanceReq->balance)) {
                 $balance = 0;
             } else {
                 $balance = $balanceReq->balance;

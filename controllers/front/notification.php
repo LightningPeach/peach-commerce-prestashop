@@ -12,20 +12,9 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
     public function postProcess()
     {
         $data = json_decode(Tools::file_get_contents('php://input'));
-        if (!isset($data->amount) ||
-            !isset($data->description) ||
-            !isset($data->creation_date) ||
-            !isset($data->expiry) ||
-            !isset($data->settle_date) ||
-            !isset($data->settled) ||
-            !isset($data->payment_request) ||
-            !isset($data->r_hash) ||
-            !isset($data->withdraw_tx) ||
-            !isset($data->fee) ||
-            !isset($data->amount_without_fee)
-        ) {
+        if (!isset($data->description)) {
             $this->module->logError(
-                'PeachCommerceNotificationModuleFrontController->postProcess: Some data not provided. Required [amount, description, creation_date, expiry, settle_date, settled, payment_request, r_hash, withdraw_tx, fee, amount_without_fee]',
+                'PeachCommerceNotificationModuleFrontController->postProcess: Payment description not provided.',
                 array('data_from_hub' => $data)
             );
             echo json_encode(array('ok' => false));
@@ -42,7 +31,7 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
         }
         $orderObj = PeachCommerceSql::loadByOrderId($orderId->order_id);
         $invoice = $this->module->api->fetch($orderObj->r_hash);
-        if ($invoice->settled) {
+        if ($invoice && $invoice->settled) {
             $this->module->logDebug(
                 'PeachCommerceNotificationModuleFrontController->postProcess: Invoice settled',
                 array('invoice_from_hub' => $invoice)
