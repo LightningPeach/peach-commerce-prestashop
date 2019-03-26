@@ -97,7 +97,21 @@ class LightningClient
         if (!$this->api) {
             throw new LightningException('Api not configured');
         }
+        \PrestaShopLogger::addLog(
+            'Will send request to ' . self::PREFIX . $url . ': ' . json_encode($params),
+            0,
+            null,
+            'PeachCommerce',
+            1
+        );
         $res = $this->api->{$method}(self::PREFIX . $url, $params, $headers);
+        \PrestaShopLogger::addLog(
+            'Got response from ' . self::PREFIX . $url . ': Info -> ' . json_encode($res->info).' Response -> '.json_encode($res->response),
+            0,
+            null,
+            'PeachCommerce',
+            1
+        );
         if ($res->info->http_code !== 200) {
             throw new LightningException($res->error);
         }

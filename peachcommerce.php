@@ -97,12 +97,12 @@ class PeachCommerce extends PaymentModule
         if (empty($loggerType)) {
             return;
         }
-        $msg = $message . ': ';
+        $msg = $message;
         if (!empty($params)) {
             if (is_string($params)) {
-                $msg .= $params;
+                $msg .= ': ' . $params;
             } else {
-                $msg .= json_encode($params);
+                $msg .= ': ' . json_encode($params);
             }
         }
         if ($loggerType === self::LOGGER_DB) {
@@ -469,21 +469,13 @@ class PeachCommerce extends PaymentModule
         }
         $testApi = new Hub\LightningClient($host, $merchantId);
         try {
-            $testReq = $testApi->getBalance();
-            if (isset($testReq->balance)) {
-                Configuration::updateValue(self::HOST, $host);
-                Configuration::updateValue(self::MERCHANT_ID, $merchantId);
-            } else {
-                $this->logError(
-                    'PeachCommerce->postProcess: Balance not in api response',
-                    array('request' => $testReq)
-                );
-                $this->postErrors[] = $this->l('Hub host is unavailable.');
-            }
-        } catch (Hub\LightningException $e) {
+            $testApi->getBalance();
+            Configuration::updateValue(self::HOST, $host);
+            Configuration::updateValue(self::MERCHANT_ID, $merchantId);
+        } catch (Hub\LightningException $error) {
             $this->logError(
                 'PeachCommerce->postProcess: Api getBalance exception',
-                array('message' => $e->getMessage())
+                array('message' => $error->getMessage())
             );
             $this->postErrors[] = $this->l('Hub host is invalid');
         }
