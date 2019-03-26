@@ -19,13 +19,13 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             empty($cart->id_address_invoice) ||
             !$hub->active
         ) {
-            $this->module->logger->logError(array(
+            $this->module->logError(
                 'PeachCommerceValidationModuleFrontController->postProcess: id_customer or id_address_delivery or id_address_invoice empty or hub module not active',
-                'cart',
-                $cart,
-                'hubStatus',
-                $hub->active
-            ));
+                array(
+                    'cart' => $cart,
+                    'hubStatus' => $hub->active
+                )
+            );
             Tools::redirect('index.php?controller=order&step=1');
         }
 
@@ -38,9 +38,9 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
         }
 
         if (!$authorized) {
-            $this->module->logger->logError(array(
-                'PeachCommerceValidationModuleFrontController->postProcess: Lightning payment method is not available.',
-            ));
+            $this->module->logError(
+                'PeachCommerceValidationModuleFrontController->postProcess: Lightning payment method is not available.'
+            );
             die($this->trans('Lightning payment method is not available.'));
         }
 
@@ -102,9 +102,9 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             ));
 
             if (!$invoice) {
-                $this->module->logger->logError(array(
-                    'PeachCommerceValidationModuleFrontController->postProcess: Invoice not generated',
-                ));
+                $this->module->logError(
+                    'PeachCommerceValidationModuleFrontController->postProcess: Invoice not generated'
+                );
                 $order = new Order($orderId);
                 $order->delete();
 
@@ -122,10 +122,10 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             );
             Tools::redirect('index.php?' . http_build_query($queryData));
         } catch (\Exception $error) {
-            $this->module->logger->logError(array(
+            $this->module->logError(
                 'PeachCommerceValidationModuleFrontController->postProcess: Exception',
-                $error->getMessage()
-            ));
+                array('message' => $error->getMessage())
+            );
             $this->context->smarty->assign('error', $error->getMessage());
             $this->setTemplate('module:peachcommerce/views/templates/front/errors-messages.tpl');
         }

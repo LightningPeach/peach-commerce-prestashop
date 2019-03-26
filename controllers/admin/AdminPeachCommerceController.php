@@ -8,19 +8,19 @@ class AdminPeachCommerceController extends ModuleAdminController
     public function __construct()
     {
         $this->bootstrap = true;
-        $this->display   = 'view';
+        $this->display = 'view';
         parent::__construct();
         if (!$this->module->active) {
-            $this->module->logger->logDebug(array(
+            $this->module->logDebug(
                 'AdminPeachCommerceController->__construct: Module not active',
                 'Redirect to AdminHome page'
-            ));
+            );
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminHome'));
         } elseif (!$this->module->getHubHost() || !$this->module->getMerchantId()) {
-            $this->module->logger->logDebug(array(
+            $this->module->logDebug(
                 'AdminPeachCommerceController->__construct: Hub host or merchantId not set',
                 'Redirect to config page'
-            ));
+            );
             Tools::redirectAdmin(
                 $this->context->link->getAdminLink(
                     'AdminModules',
@@ -49,10 +49,10 @@ class AdminPeachCommerceController extends ModuleAdminController
         try {
             $balanceReq = $this->module->api->getBalance();
         } catch (\Exception $error) {
-            $this->module->logger->logError(array(
+            $this->module->logError(
                 'AdminPeachCommerceController->initContent: Api getBalance exception',
-                $error->getMessage()
-            ));
+                array('message' => $error->getMessage())
+            );
             $balanceReq = null;
         }
         if (!$balanceReq) {
@@ -68,7 +68,7 @@ class AdminPeachCommerceController extends ModuleAdminController
                 $this->module->convertToBTCFromSatoshi($balance)
             ),
         ));
-        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_.'peachcommerce/views/templates/admin/balance.tpl');
+        $html .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'peachcommerce/views/templates/admin/balance.tpl');
         $this->context->smarty->assign(array(
             'content' => $html,
         ));
@@ -85,10 +85,10 @@ class AdminPeachCommerceController extends ModuleAdminController
             try {
                 $balanceReq = $this->module->api->getBalance();
             } catch (\Exception $error) {
-                $this->module->logger->logError(array(
+                $this->module->logError(
                     'AdminPeachCommerceController->ajaxProcessWithDraw: Api getBalance exception',
-                    $error->getMessage()
-                ));
+                    array('message' => $error->getMessage())
+                );
                 $balanceReq = null;
             }
             if (!$balanceReq) {
@@ -98,16 +98,16 @@ class AdminPeachCommerceController extends ModuleAdminController
             }
             die(json_encode(
                 array(
-                    'ok'      => true,
+                    'ok' => true,
                     'tx_hash' => $withdraw->data->tx,
                     'balance' => $this->module->formatBTC($this->module->convertToBTCFromSatoshi($balance)),
                 )
             ));
         } catch (\Exception $error) {
-            $this->module->logger->logError(array(
+            $this->module->logError(
                 'AdminPeachCommerceController->ajaxProcessWithDraw: Exception',
-                $error->getMessage()
-            ));
+                array('message' => $error->getMessage())
+            );
             die(json_encode(array('ok' => false, 'error' => $error->getMessage())));
         }
     }
