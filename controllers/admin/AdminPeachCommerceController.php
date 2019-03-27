@@ -11,13 +11,13 @@ class AdminPeachCommerceController extends ModuleAdminController
         $this->display = 'view';
         parent::__construct();
         if (!$this->module->active) {
-            $this->module->logDebug(
+            $this->module->logger->logDebug(
                 'AdminPeachCommerceController->__construct: Module not active',
                 'Redirect to AdminHome page'
             );
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminHome'));
         } elseif (!$this->module->getHubHost() || !$this->module->getMerchantId()) {
-            $this->module->logDebug(
+            $this->module->logger->logDebug(
                 'AdminPeachCommerceController->__construct: Hub host or merchantId not set',
                 'Redirect to config page'
             );
@@ -49,7 +49,7 @@ class AdminPeachCommerceController extends ModuleAdminController
         try {
             $balanceReq = $this->module->api->getBalance();
         } catch (\Exception $error) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'AdminPeachCommerceController->initContent: Api getBalance exception',
                 array('message' => $error->getMessage())
             );
@@ -79,7 +79,7 @@ class AdminPeachCommerceController extends ModuleAdminController
         try {
             $withdraw = $this->module->api->withdraw();
             if (isset($withdraw->err) && $withdraw->err) {
-                $this->module->logError(
+                $this->module->logger->logError(
                     'AdminPeachCommerceController->ajaxProcessWithDraw: Api withdraw error',
                     array('message' => $withdraw->err)
                 );
@@ -89,7 +89,7 @@ class AdminPeachCommerceController extends ModuleAdminController
             try {
                 $balanceReq = $this->module->api->getBalance();
             } catch (\Exception $error) {
-                $this->module->logError(
+                $this->module->logger->logError(
                     'AdminPeachCommerceController->ajaxProcessWithDraw: Api getBalance exception',
                     array('message' => $error->getMessage())
                 );
@@ -108,7 +108,7 @@ class AdminPeachCommerceController extends ModuleAdminController
                 )
             ));
         } catch (\Exception $error) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'AdminPeachCommerceController->ajaxProcessWithDraw: Exception',
                 array('message' => $error->getMessage())
             );

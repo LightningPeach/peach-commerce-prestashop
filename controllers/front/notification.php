@@ -13,7 +13,7 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
     {
         $data = json_decode(Tools::file_get_contents('php://input'));
         if (!isset($data->description)) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceNotificationModuleFrontController->postProcess: Payment description not provided.',
                 array('data_from_hub' => $data)
             );
@@ -22,7 +22,7 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
         }
         $orderId = json_decode($data->description);
         if (!isset($orderId->order_id) || $orderId->order_id < 1) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceNotificationModuleFrontController->postProcess: No orderId in description',
                 array('data_from_hub' => $data)
             );
@@ -32,7 +32,7 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
         $orderObj = PeachCommerceSql::loadByOrderId($orderId->order_id);
         $invoice = $this->module->api->fetch($orderObj->r_hash);
         if ($invoice && $invoice->settled) {
-            $this->module->logDebug(
+            $this->module->logger->logDebug(
                 'PeachCommerceNotificationModuleFrontController->postProcess: Invoice settled',
                 array('invoice_from_hub' => $invoice)
             );

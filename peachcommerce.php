@@ -32,7 +32,8 @@ class PeachCommerce extends PaymentModule
     private $tabName = 'AdminPeachCommerce';
     private $hubHost;
     private $merchantId;
-    private $logger = null;
+
+    public $logger = null;
 
     public $api;
 
@@ -51,7 +52,8 @@ class PeachCommerce extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
-        $this->setLogger();
+        $this->logger = new PeachCommerceLogger();
+        $this->logger->setLogger();
 
         $config = Configuration::getMultiple(array(self::HOST, self::MERCHANT_ID));
         if (!empty($config[self::HOST])) {
@@ -77,75 +79,6 @@ class PeachCommerce extends PaymentModule
             $this->warning = $this->l('No currency has been set for this module.');
         }
         $this->api = new Hub\LightningClient($this->hubHost, $this->merchantId);
-    }
-
-    public function setLogger()
-    {
-        $loggerType = Configuration::get(self::LOGGER_TYPE);
-        if (empty($loggerType)) {
-            return;
-        }
-        if ($loggerType === self::LOGGER_FILE) {
-            $this->logger = new FileLogger(0);
-            $this->logger->setFilename(_PS_ROOT_DIR_ . '/var/logs/' . date('Ymd') . self::LOGGER_FILENAME_POSTFIX);
-        }
-    }
-
-    private function log($message, $level, $params = array())
-    {
-        $loggerType = Configuration::get(self::LOGGER_TYPE);
-        if (empty($loggerType)) {
-            return;
-        }
-        $msg = $message;
-        if (!empty($params)) {
-            if (is_string($params)) {
-                $msg .= ': ' . $params;
-            } else {
-                $msg .= ': ' . json_encode($params);
-            }
-        }
-        if ($loggerType === self::LOGGER_DB) {
-            PrestaShopLogger::addLog($msg, $level, null, 'PeachCommerce', 1);
-        }
-        if ($loggerType === self::LOGGER_FILE && !is_null($this->logger)) {
-            $method = null;
-            switch ($level) {
-                case AbstractLoggerCore::ERROR:
-                    $this->logger->logError($msg);
-                    break;
-                case AbstractLoggerCore::WARNING:
-                    $this->logger->logWarning($msg);
-                    break;
-                case AbstractLoggerCore::INFO:
-                    $this->logger->logInfo($msg);
-                    break;
-                case AbstractLoggerCore::DEBUG:
-                default:
-                    $this->logger->logDebug($msg);
-                    break;
-            }
-        }
-    }
-
-    public function logError($message, $params = array())
-    {
-        $this->log($message, AbstractLoggerCore::ERROR, $params);
-    }
-
-    public function logWarning($message, $params = array())
-    {
-        $this->log($message, AbstractLoggerCore::WARNING, $params);
-    }
-
-    public function logInfo($message, $params = array())
-    {
-        $this->log($message, AbstractLoggerCore::INFO, $params);
-    }
-
-    public function logDebug($message, $params = array())
-    {
-        $this->log($message, AbstractLoggerCore::DEBUG, $params);
     }
 
     public function maxPayment()
@@ -464,7 +397,7 @@ class PeachCommerce extends PaymentModule
             $this->postErrors[] = $this->l('Merchant id is required.');
         }
         if (count($this->postErrors)) {
-            $this->logError('PeachCommerce->postProcess', $this->postErrors);
+            $this->logger->logError('PeachCommerce->postProcess', $this->postErrors);
             return;
         }
         $testApi = new Hub\LightningClient($host, $merchantId);
@@ -473,7 +406,7 @@ class PeachCommerce extends PaymentModule
             Configuration::updateValue(self::HOST, $host);
             Configuration::updateValue(self::MERCHANT_ID, $merchantId);
         } catch (Hub\LightningException $error) {
-            $this->logError(
+            $this->logger->logError(
                 'PeachCommerce->postProcess: Api getBalance exception',
                 array('message' => $error->getMessage())
             );
@@ -547,7 +480,10 @@ class PeachCommerce extends PaymentModule
         $order = $params['order'];
         $orderInfo = PeachCommerceSql::loadByOrderId($order->id);
         if (!$orderInfo->order_id || (int)$orderInfo->order_id !== $order->id) {
-            $this->logError('PeachCommerce->hookDisplayOrderDetail: OrderId not found', array('order' => $order));
+            $this->logger->logError(
+                'PeachCommerce->hookDisplayOrderDetail: OrderId not found',
+                array('order' => $order)
+            );
             return null;
         }
         $waiting = $order->getCurrentOrderState()->id === (int)Configuration::get(self::OS_WAITING);
@@ -555,7 +491,7 @@ class PeachCommerce extends PaymentModule
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
-            $this->logDebug(
+            $this->logger->logDebug(
                 'PeachCommerce->hookDisplayOrderDetail: Order expired',
                 array('orderInfo' => $orderInfo, 'order' => $order, 'checkTime' => $now->getTimestamp())
             );
@@ -613,7 +549,7 @@ class PeachCommerce extends PaymentModule
             $BTC = $this->api->getCurrency(Tools::strtolower($currency->iso_code), $totalPaid);
             $BTC .= '  BTC';
         } catch (Hub\LightningException $e) {
-            $this->logError(
+            $this->logger->logError(
                 'PeachCommerce->hookPaymentReturn: Api getCurrency exception',
                 array($e->getMessage())
             );
@@ -708,7 +644,7 @@ class PeachCommerce extends PaymentModule
         $now = new \DateTime();
         $expiryAt = (int)$orderInfo->creation_time + (int)$orderInfo->expiry;
         if ($expiryAt <= $now->getTimestamp() && $waiting) {
-            $this->logDebug(
+            $this->logger->logDebug(
                 'PeachCommerce->hookDisplayAdminOrderContentOrder: Order expired',
                 array('orderInfo' => $orderInfo, 'order' => $order, 'checkTime' => $now->getTimestamp())
             );

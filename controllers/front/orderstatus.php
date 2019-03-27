@@ -19,7 +19,7 @@ class PeachCommerceOrderStatusModuleFrontController extends ModuleFrontControlle
         $orderCustomerId = (int)$order->id_customer;
         $customerId = (int)$this->context->customer->id;
         if ($orderCustomerId !== $customerId) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceOrderStatusModuleFrontController->displayAjax: orderCustomerId !== customerId',
                 array('orderCustomerId' => $orderCustomerId, 'customerId' => $customerId)
             );

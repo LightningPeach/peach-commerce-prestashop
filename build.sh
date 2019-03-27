@@ -15,6 +15,7 @@ cp ./index.php ./peachcommerce/
 cp ./peachcommerce.php ./peachcommerce/
 cp ./logo.png ./peachcommerce/
 cp ./cron.php ./peachcommerce/
+cp ./logger.php ./peachcommerce/
 
 
 zip -r peach-commerce.zip peachcommerce

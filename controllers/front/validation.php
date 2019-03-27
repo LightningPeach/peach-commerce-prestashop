@@ -19,7 +19,7 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             empty($cart->id_address_invoice) ||
             !$hub->active
         ) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceValidationModuleFrontController->postProcess: id_customer or id_address_delivery or id_address_invoice empty or hub module not active',
                 array(
                     'cart' => $cart,
@@ -38,7 +38,7 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
         }
 
         if (!$authorized) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceValidationModuleFrontController->postProcess: Lightning payment method is not available.'
             );
             die($this->trans('Lightning payment method is not available.'));
@@ -102,7 +102,7 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             ));
 
             if (!$invoice) {
-                $this->module->logError(
+                $this->module->logger->logError(
                     'PeachCommerceValidationModuleFrontController->postProcess: Invoice not generated'
                 );
                 $order = new Order($orderId);
@@ -122,7 +122,7 @@ class PeachCommerceValidationModuleFrontController extends ModuleFrontController
             );
             Tools::redirect('index.php?' . http_build_query($queryData));
         } catch (\Exception $error) {
-            $this->module->logError(
+            $this->module->logger->logError(
                 'PeachCommerceValidationModuleFrontController->postProcess: Exception',
                 array('message' => $error->getMessage())
             );

@@ -4,6 +4,7 @@ namespace LightningHub\Hub;
 
 require(__DIR__ . DIRECTORY_SEPARATOR . 'LightningException.php');
 require(__DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+require(_PS_MODULE_DIR_ . DIRECTORY_SEPARATOR . 'peachcommerce' . DIRECTORY_SEPARATOR . 'logger.php');
 
 use RestClient;
 
@@ -13,9 +14,12 @@ class LightningClient
 
     private $api;
     private $info;
+    private $logger;
 
     public function __construct($url = null, $merchant_id = null)
     {
+        $this->logger = new \PeachCommerceLogger();
+        $this->logger->setLogger();
         if ($url && $merchant_id) {
             $this->api = new RestClient(
                 [
@@ -92,28 +96,45 @@ class LightningClient
         return $this->callApi('post', 'withdraw');
     }
 
+    private function getResponseError($response)
+    {
+        $baseError = $response->error;
+        $baseResponse = $response->response;
+        try {
+            $data = json_decode($baseResponse);
+            if (isset($data->err)) {
+                return $data->err;
+            }
+            if (isset($data->error)) {
+                return $data->error;
+            }
+            return $baseError;
+        } catch (\Exception $error) {
+            return $baseError;
+        }
+    }
+
     private function callApi($method, $url, $params = [], $headers = [])
     {
         if (!$this->api) {
             throw new LightningException('Api not configured');
         }
-        \PrestaShopLogger::addLog(
-            'Will send request to ' . self::PREFIX . $url . ': ' . json_encode($params),
-            0,
-            null,
-            'PeachCommerce',
-            1
+        $this->logger->logDebug(
+            'Will send request to ' . self::PREFIX . $url,
+            array(
+                'Params' => $params,
+            )
         );
         $res = $this->api->{$method}(self::PREFIX . $url, $params, $headers);
-        \PrestaShopLogger::addLog(
-            'Got response from ' . self::PREFIX . $url . ': Info -> ' . json_encode($res->info).' Response -> '.json_encode($res->response),
-            0,
-            null,
-            'PeachCommerce',
-            1
+        $this->logger->logDebug(
+            'Got response from ' . self::PREFIX . $url,
+            array(
+                'Info' => $res->info,
+                'Response' => $res->response,
+            )
         );
         if ($res->info->http_code !== 200) {
-            throw new LightningException($res->error);
+            throw new LightningException($this->getResponseError($res));
         }
         $data = json_decode($res->response);
 
