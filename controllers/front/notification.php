@@ -30,7 +30,23 @@ class PeachCommerceNotificationModuleFrontController extends ModuleFrontControll
             die();
         }
         $orderObj = PeachCommerceSql::loadByOrderId($orderId->order_id);
+        if (empty($orderObj)) {
+            $this->module->logger->logDebug(
+                'PeachCommerceNotificationModuleFrontController->postProcess: Not found peach order with provided data',
+                array('data_from_hub' => $data)
+            );
+            echo json_encode(array('ok' => false));
+            die();
+        }
         $invoice = $this->module->api->fetch($orderObj->r_hash);
+        if (empty($invoice)) {
+            $this->module->logger->logDebug(
+                'PeachCommerceNotificationModuleFrontController->postProcess: Cant load invoice',
+                array('peachOrder' => $orderObj)
+            );
+            echo json_encode(array('ok' => false));
+            die();
+        }
         if ($invoice && $invoice->settled) {
             $this->module->logger->logDebug(
                 'PeachCommerceNotificationModuleFrontController->postProcess: Invoice settled',
